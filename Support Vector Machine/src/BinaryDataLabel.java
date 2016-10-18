@@ -25,4 +25,13 @@ public enum BinaryDataLabel {
 		return this.label;
 	}
 	
+	@Override
+	public String toString() {
+		if (this.label == +1) {
+			return "+";
+		} else {
+			return "-";
+		}
+	}
+	
 }

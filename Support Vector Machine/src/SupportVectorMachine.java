@@ -8,11 +8,9 @@ import java.util.Random;
  */
 public class SupportVectorMachine {
 
-	public static final int DEFAULT_NUMBER_OF_EPOCHS = 5, DEFAULT_CROSS_VALIDATION_SPLITS = 6;
+	public static final int DEFAULT_NUMBER_OF_EPOCHS = 20, DEFAULT_CROSS_VALIDATION_SPLITS = 5, NUMBER_OF_CROSS_VALIDATION_FOLDS = 6, MINIMUM_SHUFFLES = 100;
 	public static final List<Double> DEFAULT_LEARNING_RATES = Arrays.asList(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0);
 	public static final List<Double> DEFAULT_TRADEOFF_VALUES = Arrays.asList(Math.pow(2.0, 0.0), Math.pow(2.0, 1.0), Math.pow(2.0, 2.0), Math.pow(2.0, 3.0), Math.pow(2.0, 4.0), Math.pow(2.0, 5.0));
-	public static final int MINIMUM_SHUFFLES = 10;
-	public static final int NUMBER_OF_CROSS_VALIDATION_FOLDS = 6;
 	
 	private int numberOfEpochsForTraining;
 	private int crossValidationSplits;
@@ -20,6 +18,7 @@ public class SupportVectorMachine {
 	private Kernel kernel;
 	private List<Double> weightVector;
 	private Random randomNumberGenerator;
+	private int stochasticGradientDescentCounter;
 	
 	/**
 	 * Constructor using default values
@@ -44,9 +43,14 @@ public class SupportVectorMachine {
 		this.tradeoffValuesForTraining = tradeoffValuesForTraining;
 		this.kernel = kernel;
 		this.weightVector = new ArrayList<Double>();
-		
+		this.randomNumberGenerator = new Random(0);
 	}
 	
+	/**
+	 * Train the SVM
+	 * @param featureVectors
+	 * @param trainingDataLabels
+	 */
 	public void fit(List<List<Double>> featureVectors, List<BinaryDataLabel> trainingDataLabels) {
 		
 		boolean firstTime = true;
@@ -91,6 +95,7 @@ public class SupportVectorMachine {
 					weightVector = getZeroWeightVector(trainingDataSubsetFeatures.get(1));
 					
 					//Run through multiple epochs
+					this.stochasticGradientDescentCounter = 0;
 					for (int epochCounter = 0; epochCounter < this.numberOfEpochsForTraining; ++ epochCounter) {
 
 						//Shuffle the training data for each subsequent epoch
@@ -124,6 +129,16 @@ public class SupportVectorMachine {
 		
 		}
 		
+	}
+	
+	/**
+	 * @param stochasticGraientDescentCounter
+	 * @param originalLearningRate
+	 * @param tradeoffValue
+	 * @return next learning rate
+	 */
+	private double getNextLearningRate(int stochasticGraientDescentCounter, double originalLearningRate, double tradeoffValue) {
+		return originalLearningRate / (1 + (originalLearningRate * stochasticGraientDescentCounter / tradeoffValue));
 	}
 	
 	/**
@@ -274,10 +289,10 @@ public class SupportVectorMachine {
 				
 				randomRecordNumber = randomNumberGenerator.nextInt(labelsCopy.size());
 				
-				featureVectorsSubset.add(featureVectors.get(randomRecordNumber));
+				featureVectorsSubset.add(featuresVectorCopy.get(randomRecordNumber));
 				featuresVectorCopy.remove(randomRecordNumber);
 				
-				labelsSubset.add(labels.get(randomRecordNumber));
+				labelsSubset.add(labelsCopy.get(randomRecordNumber));
 				labelsCopy.remove(randomRecordNumber);
 
 			}
@@ -306,12 +321,15 @@ public class SupportVectorMachine {
 		
 		//Loop through each training record sample
 		int featureVectorCounter = 0;
+		double nextLearningRate = 0.0;
 		for (List<Double> featureVector : trainingDataSubsetFeatures) {
 		
+			nextLearningRate = getNextLearningRate(this.stochasticGradientDescentCounter++, learningRate, tradeoffValue);
+			
 			if (trainingDataSubsetLabels.get(featureVectorCounter).getValue() * this.kernel.getDotProductInFeatureSpace(weightVector, adjustForBias(featureVector)) <= 1) {
-				weightVector = getSumOfVectors(multiplyWithVector(1 - learningRate, weightVector), multiplyWithVector(learningRate * tradeoffValue * trainingDataSubsetLabels.get(featureVectorCounter).getValue(), adjustForBias(featureVector)));
+				weightVector = getSumOfVectors(multiplyWithVector(1 - nextLearningRate, weightVector), multiplyWithVector(nextLearningRate * tradeoffValue * trainingDataSubsetLabels.get(featureVectorCounter).getValue(), adjustForBias(featureVector)));
 			} else {
-				weightVector = multiplyWithVector(1 - learningRate, weightVector);
+				weightVector = multiplyWithVector(1 - nextLearningRate, weightVector);
 			}
 			
 			++featureVectorCounter;

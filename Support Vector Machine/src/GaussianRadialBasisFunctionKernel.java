@@ -5,7 +5,7 @@ import java.util.List;
  * The Gaussian RBF kernel returns exp(-gamma * ||x1-x2||)
  *
  */
-public class GaussianRadialBasisFunctionKernel implements Kernel {
+public class GaussianRadialBasisFunctionKernel extends KernelImplementation {
 	
 	private double gaussianKernalWidth;
 	
@@ -23,7 +23,7 @@ public class GaussianRadialBasisFunctionKernel implements Kernel {
 	@Override
 	public double getDotProductInFeatureSpace(List<Double> inputSpaceVector1, List<Double> inputSpaceVector2) {
 		
-		return Math.pow(Math.E, -1 * this.gaussianKernalWidth * Kernel.getVectorNormSquared(Kernel.getDifferenceVector(inputSpaceVector1, inputSpaceVector2)));
+		return Math.pow(Math.E, -1 * this.gaussianKernalWidth * getVectorNormSquared(getDifferenceVector(inputSpaceVector1, inputSpaceVector2)));
 
 	}
 	

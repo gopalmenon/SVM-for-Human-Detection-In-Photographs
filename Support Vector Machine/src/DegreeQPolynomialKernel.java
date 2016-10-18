@@ -3,7 +3,7 @@ import java.util.List;
 /**
  * The degree-Q polynomial kernel returns (zeta + gamma * x1.x2)^Q
  */
-public class DegreeQPolynomialKernel implements Kernel {
+public class DegreeQPolynomialKernel extends KernelImplementation {
 
 	private double zeta, gamma, degree;
 	
@@ -18,7 +18,7 @@ public class DegreeQPolynomialKernel implements Kernel {
 	 */
 	@Override
 	public double getDotProductInFeatureSpace(List<Double> inputSpaceVector1, List<Double> inputSpaceVector2) {
-		return Math.pow(this.zeta + gamma * Kernel.getDotProduct(inputSpaceVector1, inputSpaceVector2), degree);
+		return Math.pow(this.zeta + gamma * getDotProduct(inputSpaceVector1, inputSpaceVector2), degree);
 	}
 
 }

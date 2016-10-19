@@ -132,7 +132,7 @@ public class SupportVectorMachine {
 	}
 	
 	/**
-	 * @param stochasticGraientDescentCounter
+	 * @param stochasticGradientDescentCounter
 	 * @param originalLearningRate
 	 * @param tradeoffValue
 	 * @return next learning rate

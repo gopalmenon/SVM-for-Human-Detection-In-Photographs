@@ -376,4 +376,11 @@ public class SupportVectorMachine {
 		
 	}
 	
+	/**
+	 * @return the weight vector
+	 */
+	public List<Double> getWeightVector() {
+		return this.weightVector;
+	}
+	
 }

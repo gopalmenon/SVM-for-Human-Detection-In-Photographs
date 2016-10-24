@@ -11,8 +11,8 @@ public class Svm2DInputsUi {
 	private static final int ADD_NEGATIVE_POINTS_MODE = 2;
 	private static final int ADD_TEST_POINTS_MODE = 3;
 	private static final int POINTS_DIMENSION = 10;
-	private static final int PANEL_WIDTH = 640;
-	private static final int PANEL_HEIGHT = 480;
+	private static final int PANEL_WIDTH = 640;//1280
+	private static final int PANEL_HEIGHT = 480;//780
 	
 	private static int selectedMode = 0;
 
@@ -44,27 +44,34 @@ public class Svm2DInputsUi {
         fileMenu.add(exitMenuItem);
         menuBar.add(fileMenu);
         
+        //Create the UI panel
+        final UiPanel uiPanel = new UiPanel();
+        uiPanel.setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
+        
         //Training menu
         trainingMenu = new JMenu("Training");
         addPositivePointMenuItem = new JMenuItem("Add Positive Points");
         addPositivePointMenuItem.addActionListener(new ActionListener() {public void actionPerformed(ActionEvent e) {selectedMode = ADD_POSITIVE_POINTS_MODE;} });
         addNegativePointMenuItem = new JMenuItem("Add Negative Points");
         addNegativePointMenuItem.addActionListener(new ActionListener() {public void actionPerformed(ActionEvent e) {selectedMode = ADD_NEGATIVE_POINTS_MODE;} });
-        trainingMenu.add(addPositivePointMenuItem);
-        trainingMenu.add(addNegativePointMenuItem);
-        menuBar.add(trainingMenu);
-        
-        //Create the UI panel
-        final UiPanel uiPanel = new UiPanel();
-        uiPanel.setPreferredSize(new Dimension(PANEL_WIDTH, PANEL_HEIGHT));
-
-        //Testing menu
-        testingMenu = new JMenu("Testing");
         findBestSeparatorMenuItem = new JMenuItem("Find Best Separator");
         findBestSeparatorMenuItem.addActionListener(new ActionListener() {public void actionPerformed(ActionEvent e) {uiPanel.fitTrainingData();} });
+        trainingMenu.add(addPositivePointMenuItem);
+        trainingMenu.add(addNegativePointMenuItem);
+        trainingMenu.add(findBestSeparatorMenuItem);
+        menuBar.add(trainingMenu);
+
+        //Make a list of menu items to be disabled after training
+        List<JMenuItem> menuItemList = new ArrayList<JMenuItem>();
+        menuItemList.add(addPositivePointMenuItem);
+        menuItemList.add(addNegativePointMenuItem);
+        menuItemList.add(findBestSeparatorMenuItem);
+        findBestSeparatorMenuItem.addActionListener(new ActionListener() {public void actionPerformed(ActionEvent e) {disableTrainingInputsAfterTraining(menuItemList);} });
+        
+        //Testing menu
+        testingMenu = new JMenu("Testing");
         addTestPointMenuItem = new JMenuItem("Add Test Point");
         addTestPointMenuItem.addActionListener(new ActionListener() {public void actionPerformed(ActionEvent e) {selectedMode = ADD_TEST_POINTS_MODE;} });
-        testingMenu.add(findBestSeparatorMenuItem);
         testingMenu.add(addTestPointMenuItem);
         menuBar.add(testingMenu);
         
@@ -87,6 +94,18 @@ public class Svm2DInputsUi {
         frame.setVisible(true);
     }
     
+    /**
+     * Disable menu options used for training
+     * @param menuItemList
+     */
+    private static void disableTrainingInputsAfterTraining(List<JMenuItem> menuItemList) {
+    	
+    	for (JMenuItem menuItem : menuItemList) {
+    		menuItem.setEnabled(false);
+    	}
+    	
+    }
+    
     //Define the terrain that will contain the obstacles, start an d end points
     @SuppressWarnings("serial")
 	static class UiPanel extends JPanel implements MouseListener {
@@ -96,7 +115,8 @@ public class Svm2DInputsUi {
     	private List<InputPoint> positivePredictions = new ArrayList<InputPoint>();
     	private List<InputPoint> negativePredictions = new ArrayList<InputPoint>();
     	private List<InputPoint> supportVectors = new ArrayList<InputPoint>();
-
+    	private SupportVectorMachine supportVectorMachine = null;
+    	
     	private List<Double> weightVector = null;
     	private boolean trainingAttempted = false;
     	private  boolean bestSeparatorFound = false;
@@ -160,7 +180,7 @@ public class Svm2DInputsUi {
 			List<BinaryDataLabel> trainingDataLabels = getTrainingLabels(this.positiveInputs.size(), true);
 			trainingDataLabels.addAll(getTrainingLabels(this.negativeInputs.size(), false));
 			
-			SupportVectorMachine supportVectorMachine = new SupportVectorMachine();
+			this.supportVectorMachine = new SupportVectorMachine();
 			supportVectorMachine.fit(featureVectors, trainingDataLabels);
 			
 			this.trainingAttempted = true;
@@ -264,20 +284,15 @@ public class Svm2DInputsUi {
 				
 			case ADD_TEST_POINTS_MODE:
 				if (trainingAttempted && bestSeparatorFound) {
-					int weightIndex = 0;
-					double dotProduct = 0.0;
-					for (Double weight : this.weightVector) {
-						if (weightIndex == 0) {
-							dotProduct += weight;
-						} else {
-							dotProduct += (weight * (weightIndex == 1 ? e.getX() : e.getY()));
-						}
-						++weightIndex;
-					}
-					if (dotProduct >= 0.0) {
+					List<Double> testVector = new ArrayList<Double>();
+					testVector.add(Double.valueOf((double)e.getX()));
+					testVector.add(Double.valueOf((double)e.getY()));
+					if (this.supportVectorMachine.getPrediction(testVector) == BinaryDataLabel.POSITIVE_LABEL) {
 						positivePredictions.add(new InputPoint(e.getX(), e.getY()));
+						System.out.println("Positive point " + testVector + ", weight vector " + this.weightVector);
 					} else {
 						negativePredictions.add(new InputPoint(e.getX(), e.getY()));
+						System.out.println("Negative point " + testVector + ", weight vector " + this.weightVector);
 					}
 				}
 				break;

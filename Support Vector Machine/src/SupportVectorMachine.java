@@ -1,3 +1,6 @@
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,8 +12,9 @@ import java.util.Random;
 public class SupportVectorMachine {
 
 	public static final int DEFAULT_NUMBER_OF_EPOCHS = 20, DEFAULT_CROSS_VALIDATION_SPLITS = 5, NUMBER_OF_CROSS_VALIDATION_FOLDS = 6, MINIMUM_SHUFFLES = 100;
-	public static final List<Double> DEFAULT_LEARNING_RATES = Arrays.asList(0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0);
-	public static final List<Double> DEFAULT_TRADEOFF_VALUES = Arrays.asList(Math.pow(2.0, 0.0), Math.pow(2.0, 1.0), Math.pow(2.0, 2.0), Math.pow(2.0, 3.0), Math.pow(2.0, 4.0), Math.pow(2.0, 5.0));
+	public static final List<Double> DEFAULT_LEARNING_RATES = Arrays.asList(Math.pow(2.0, 1.0), Math.pow(2.0, 0.0), Math.pow(2.0, -1.0), Math.pow(2.0, -2.0), Math.pow(2.0, -3.0), Math.pow(2.0, -4.0), Math.pow(2.0, -5.0), Math.pow(2.0, -6.0), Math.pow(2.0, -7.0), Math.pow(2.0, -8.0), Math.pow(2.0, -9.0), Math.pow(2.0, -10.0));
+	public static final List<Double> DEFAULT_TRADEOFF_VALUES = Arrays.asList(Math.pow(10.0, 1.0), Math.pow(10.0, 0.0), Math.pow(10.0, -1.0), Math.pow(10.0, -2.0), Math.pow(10.0, -3.0), Math.pow(10.0, -4.0), Math.pow(10.0, -5.0), Math.pow(10.0, -6.0), Math.pow(10.0, -7.0), Math.pow(10.0, -8.0), Math.pow(10.0, -9.0), Math.pow(10.0, -10.0));
+	public static final String LOG_FILE_NAME = "LogFile.txt";
 	
 	private int numberOfEpochsForTraining;
 	private int crossValidationSplits;
@@ -18,13 +22,15 @@ public class SupportVectorMachine {
 	private Kernel kernel;
 	private List<Double> weightVector;
 	private Random randomNumberGenerator;
-	private int stochasticGradientDescentCounter;
+	private boolean runInDebug;
+	private PrintWriter out;
+	private double currentLearningRate;
 	
 	/**
 	 * Constructor using default values
 	 */
 	public SupportVectorMachine() {
-		this(DEFAULT_NUMBER_OF_EPOCHS, DEFAULT_CROSS_VALIDATION_SPLITS, DEFAULT_LEARNING_RATES, DEFAULT_TRADEOFF_VALUES, new IdentityKernel());
+		this(DEFAULT_NUMBER_OF_EPOCHS, DEFAULT_CROSS_VALIDATION_SPLITS, DEFAULT_LEARNING_RATES, DEFAULT_TRADEOFF_VALUES, new IdentityKernel(), true);
 	}
 	
 	/**
@@ -35,7 +41,7 @@ public class SupportVectorMachine {
 	 * @param tradeoffValuesForTraining
 	 * @param kernel
 	 */
-	public SupportVectorMachine(int numberOfEpochsForTraining, int crossValidationSplits, List<Double> learningRatesForTraining, List<Double> tradeoffValuesForTraining, Kernel kernel) {
+	public SupportVectorMachine(int numberOfEpochsForTraining, int crossValidationSplits, List<Double> learningRatesForTraining, List<Double> tradeoffValuesForTraining, Kernel kernel, boolean runInDebug) {
 		
 		this.numberOfEpochsForTraining = numberOfEpochsForTraining;
 		this.crossValidationSplits = crossValidationSplits;
@@ -44,6 +50,14 @@ public class SupportVectorMachine {
 		this.kernel = kernel;
 		this.weightVector = new ArrayList<Double>();
 		this.randomNumberGenerator = new Random(0);
+		this.runInDebug = runInDebug;
+		try{
+			this.out = new PrintWriter(new FileWriter(LOG_FILE_NAME));
+		} catch (IOException e) {
+			System.err.println("IOException while opening file ");
+			e.printStackTrace();
+			System.exit(0);
+		}
 	}
 	
 	/**
@@ -53,16 +67,20 @@ public class SupportVectorMachine {
 	 */
 	public void fit(List<List<Double>> featureVectors, List<BinaryDataLabel> trainingDataLabels) {
 		
-		boolean firstTime = true;
 		double currentAccuracy = 0.0, maximumAccuracy = Double.MIN_VALUE;
 				
 		//Run through multiple learning rates
 		for (Double learningRate : this.learningRatesForTraining) {
+			
+			log("Current Learning Rate: " + Double.valueOf(learningRate).toString());
+			
 			List<Double> weightVector = null;
 			
 			//Run through multiple tradeoff values
 			for (Double tradeoffValue : this.tradeoffValuesForTraining) {
-		
+				
+				log("Current tradeoff value: " + Double.valueOf(tradeoffValue).toString());
+
 				//Run k-fold cross validation
 				double averageAccuracy = 0.0;
 				
@@ -70,6 +88,8 @@ public class SupportVectorMachine {
 
 				for (int crossValidationCounter = 0; crossValidationCounter < this.crossValidationSplits; ++crossValidationCounter) {
 				
+					log("Current cross validation counter: " + Integer.valueOf(crossValidationCounter).toString());
+
 					//Load training and testing data
 					List<List<Double>> trainingDataSubsetFeatures = new ArrayList<List<Double>>();
 					List<BinaryDataLabel> trainingDataSubsetLabels = new ArrayList<BinaryDataLabel>();
@@ -92,21 +112,24 @@ public class SupportVectorMachine {
 						
 					}
 					
-					weightVector = getZeroWeightVector(trainingDataSubsetFeatures.get(1));
+					weightVector = getZeroWeightVector(trainingDataSubsetFeatures.get(1).size());
 					
 					//Run through multiple epochs
-					this.stochasticGradientDescentCounter = 0;
+					boolean firstTime = true;
 					for (int epochCounter = 0; epochCounter < this.numberOfEpochsForTraining; ++ epochCounter) {
+						
+						log("Current epoch: " + Integer.valueOf(epochCounter).toString());
 
 						//Shuffle the training data for each subsequent epoch
 						if (firstTime) {
 							firstTime = false;
+							this.currentLearningRate = learningRate.doubleValue();
 						} else {
 							shuffleTrainingData(trainingDataSubsetFeatures, trainingDataSubsetLabels);
 						}
 						
 						//Find the optimum weights by running stochastic gradient descent
-						weightVector = runStochasticGradientDescent(trainingDataSubsetFeatures, trainingDataSubsetLabels, learningRate.doubleValue(), tradeoffValue.doubleValue(), weightVector);
+						weightVector = runStochasticGradientDescent(trainingDataSubsetFeatures, trainingDataSubsetLabels, tradeoffValue.doubleValue(), weightVector);
 					
 					}
 					
@@ -137,8 +160,8 @@ public class SupportVectorMachine {
 	 * @param tradeoffValue
 	 * @return next learning rate
 	 */
-	private double getNextLearningRate(int stochasticGraientDescentCounter, double originalLearningRate, double tradeoffValue) {
-		return originalLearningRate / (1 + (originalLearningRate * stochasticGraientDescentCounter / tradeoffValue));
+	private double getNextLearningRate(int stochasticGradientDescentCounter, double originalLearningRate, double tradeoffValue) {
+		return originalLearningRate / (1 + (originalLearningRate * stochasticGradientDescentCounter / tradeoffValue));
 	}
 	
 	/**
@@ -194,14 +217,14 @@ public class SupportVectorMachine {
 	}
 	
 	/**
-	 * @param featureVector
+	 * @param featureVectorSize
 	 * @return a zero weight vector
 	 */
-	private List<Double>  getZeroWeightVector(List<Double> featureVector) {
+	private List<Double> getZeroWeightVector(int featureVectorSize) {
 		
 		List<Double> weightVector = new ArrayList<Double>();
 		
-		for (int weightVectorIndex = 0; weightVectorIndex <= featureVector.size(); ++weightVectorIndex) {
+		for (int weightVectorIndex = 0; weightVectorIndex <= featureVectorSize; ++weightVectorIndex) {
 			weightVector.add(Double.valueOf(0.0));
 		}
 		
@@ -317,19 +340,21 @@ public class SupportVectorMachine {
 	 * @param weightVector
 	 * @return
 	 */
-	private List<Double> runStochasticGradientDescent(List<List<Double>> trainingDataSubsetFeatures, List<BinaryDataLabel> trainingDataSubsetLabels, double learningRate, double tradeoffValue, List<Double> weightVector) {
+	private List<Double> runStochasticGradientDescent(List<List<Double>> trainingDataSubsetFeatures, List<BinaryDataLabel> trainingDataSubsetLabels, double tradeoffValue, List<Double> weightVector) {
 		
 		//Loop through each training record sample
-		int featureVectorCounter = 0;
-		double nextLearningRate = 0.0;
+		int featureVectorCounter = 0,stochasticGradientDescentCounter = 0;
 		for (List<Double> featureVector : trainingDataSubsetFeatures) {
 		
-			nextLearningRate = getNextLearningRate(this.stochasticGradientDescentCounter++, learningRate, tradeoffValue);
+			this.currentLearningRate = getNextLearningRate(stochasticGradientDescentCounter++, this.currentLearningRate, tradeoffValue);
+			
+			log("\nCurrent Learning Rate: " + Double.valueOf(this.currentLearningRate).toString());
+			log("Current SVM Objective: " + Double.valueOf(getCurrentSvmObjectiveValue(weightVector, adjustForBias(featureVector), trainingDataSubsetLabels.get(featureVectorCounter), tradeoffValue)).toString());
 			
 			if (trainingDataSubsetLabels.get(featureVectorCounter).getValue() * this.kernel.getDotProductInFeatureSpace(weightVector, adjustForBias(featureVector)) <= 1) {
-				weightVector = getSumOfVectors(multiplyWithVector(1 - nextLearningRate, weightVector), multiplyWithVector(nextLearningRate * tradeoffValue * trainingDataSubsetLabels.get(featureVectorCounter).getValue(), adjustForBias(featureVector)));
+				weightVector = getSumOfVectors(multiplyWithVector(1 - this.currentLearningRate, weightVector), multiplyWithVector(this.currentLearningRate * tradeoffValue * trainingDataSubsetLabels.get(featureVectorCounter).getValue(), adjustForBias(featureVector)));
 			} else {
-				weightVector = multiplyWithVector(1 - nextLearningRate, weightVector);
+				weightVector = multiplyWithVector(1 - this.currentLearningRate, weightVector);
 			}
 			
 			++featureVectorCounter;
@@ -381,6 +406,41 @@ public class SupportVectorMachine {
 	 */
 	public List<Double> getWeightVector() {
 		return this.weightVector;
+	}
+	
+	/**
+	 * Method that can be used for debugging. This will return the current value of the objective and this should reduce over time.
+	 * 
+	 * @param currentWeightVector
+	 * @param currentFeatureVector
+	 * @param currentFeatureLabel
+	 * @return current value of the SVM Objective
+	 */
+	private double getCurrentSvmObjectiveValue(List<Double> currentWeightVector, List<Double> currentFeatureVector, BinaryDataLabel currentFeatureLabel, double currentTradeoffValue) {
+		
+		log("Current weight vector: " + currentWeightVector);
+		log("Current feature vector: " + currentFeatureVector);
+		log("Current label: " + currentFeatureLabel);
+		
+		double currentSvmObjectiveValue = 0.5 * KernelImplementation.getDotProduct(currentWeightVector, currentWeightVector);
+		
+		currentSvmObjectiveValue += currentTradeoffValue * Math.max(0.0, 1 - currentFeatureLabel.getValue() * KernelImplementation.getDotProduct(currentWeightVector, currentFeatureVector));
+		
+		return currentSvmObjectiveValue;
+		
+	}
+	
+	/**
+	 * Write log to console if running in debug
+	 * 
+	 * @param stringToLog
+	 */
+	private void log(String stringToLog) {
+		
+		if (this.runInDebug) {
+			this.out.println(stringToLog);
+		}
+		
 	}
 	
 }

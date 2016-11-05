@@ -11,7 +11,7 @@ public abstract class KernelImplementation implements Kernel {
 	 * @param vector2
 	 * @return the dot product of two vectors
 	 */
-	public double getDotProduct(List<Double> vector1, List<Double> vector2) {
+	public static double getDotProduct(List<Double> vector1, List<Double> vector2) {
 		
 		//Both vectors need to have the same dimensions
 		assert vector1.size() == vector2.size();

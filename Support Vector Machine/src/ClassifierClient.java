@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 
 public class ClassifierClient {
@@ -8,186 +9,101 @@ public class ClassifierClient {
 	public static void main(String[] args) {
 		
 		ClassifierClient classifierClient = new ClassifierClient();
-		classifierClient.runWith1dFeatures();
-		//classifierClient.runWith2dFeatures();
+		//classifierClient.runWith1dFeatures();
+		classifierClient.runWith2dFeatures();
 		
 	}
 
 	private void runWith1dFeatures() {
 		
+		
+		int numberOfFeaturesPerLabel = 1000, numberOfTestFeaturesPerLabel = 20, maximumFeatureValue = 1000;
+		Random randomNumberGenerator = new Random(0);
+		double feature = 0.0;
+				
 		List<List<Double>> features = new ArrayList<List<Double>>();
-		features.add(Arrays.asList(Double.valueOf(1.0)));
-		features.add(Arrays.asList(Double.valueOf(2.0)));
-		features.add(Arrays.asList(Double.valueOf(3.0)));
-		features.add(Arrays.asList(Double.valueOf(4.0)));
-		features.add(Arrays.asList(Double.valueOf(5.0)));
-		features.add(Arrays.asList(Double.valueOf(6.0)));
-		features.add(Arrays.asList(Double.valueOf(7.0)));
-		features.add(Arrays.asList(Double.valueOf(8.0)));
-		features.add(Arrays.asList(Double.valueOf(9.0)));
-		features.add(Arrays.asList(Double.valueOf(10.0)));
-		features.add(Arrays.asList(Double.valueOf(11.0)));
-		features.add(Arrays.asList(Double.valueOf(12.0)));
-		features.add(Arrays.asList(Double.valueOf(13.0)));
-		features.add(Arrays.asList(Double.valueOf(14.0)));
-		features.add(Arrays.asList(Double.valueOf(15.0)));
-		features.add(Arrays.asList(Double.valueOf(16.0)));
-		features.add(Arrays.asList(Double.valueOf(17.0)));
-		features.add(Arrays.asList(Double.valueOf(18.0)));
-		features.add(Arrays.asList(Double.valueOf(19.0)));
-		features.add(Arrays.asList(Double.valueOf(20.0)));
-		features.add(Arrays.asList(Double.valueOf(21.0)));
-		features.add(Arrays.asList(Double.valueOf(22.0)));
-		features.add(Arrays.asList(Double.valueOf(23.0)));
-		features.add(Arrays.asList(Double.valueOf(24.0)));
-		features.add(Arrays.asList(Double.valueOf(25.0)));
-		features.add(Arrays.asList(Double.valueOf(26.0)));
-		features.add(Arrays.asList(Double.valueOf(27.0)));
-		features.add(Arrays.asList(Double.valueOf(28.0)));
-		features.add(Arrays.asList(Double.valueOf(29.0)));
-		features.add(Arrays.asList(Double.valueOf(30.0)));
-		
-		features.add(Arrays.asList(Double.valueOf(50.0)));
-		features.add(Arrays.asList(Double.valueOf(51.0)));
-		features.add(Arrays.asList(Double.valueOf(52.0)));
-		features.add(Arrays.asList(Double.valueOf(53.0)));
-		features.add(Arrays.asList(Double.valueOf(54.0)));
-		features.add(Arrays.asList(Double.valueOf(55.0)));
-		features.add(Arrays.asList(Double.valueOf(56.0)));
-		features.add(Arrays.asList(Double.valueOf(57.0)));
-		features.add(Arrays.asList(Double.valueOf(58.0)));
-		features.add(Arrays.asList(Double.valueOf(59.0)));
-		features.add(Arrays.asList(Double.valueOf(60.0)));
-		features.add(Arrays.asList(Double.valueOf(61.0)));
-		features.add(Arrays.asList(Double.valueOf(62.0)));
-		features.add(Arrays.asList(Double.valueOf(63.0)));
-		features.add(Arrays.asList(Double.valueOf(64.0)));
-		features.add(Arrays.asList(Double.valueOf(65.0)));
-		features.add(Arrays.asList(Double.valueOf(66.0)));
-		features.add(Arrays.asList(Double.valueOf(67.0)));
-		features.add(Arrays.asList(Double.valueOf(68.0)));
-		features.add(Arrays.asList(Double.valueOf(69.0)));
-		features.add(Arrays.asList(Double.valueOf(70.0)));
-		features.add(Arrays.asList(Double.valueOf(71.0)));
-		features.add(Arrays.asList(Double.valueOf(72.0)));
-		features.add(Arrays.asList(Double.valueOf(73.0)));
-		features.add(Arrays.asList(Double.valueOf(74.0)));
-		features.add(Arrays.asList(Double.valueOf(75.0)));
-		features.add(Arrays.asList(Double.valueOf(76.0)));
-		features.add(Arrays.asList(Double.valueOf(77.0)));
-		features.add(Arrays.asList(Double.valueOf(78.0)));
-		features.add(Arrays.asList(Double.valueOf(79.0)));
-		
 		List<BinaryDataLabel> labels = new ArrayList<BinaryDataLabel>();
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
 		
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
+		for (int featureCounter = 0; featureCounter < numberOfFeaturesPerLabel; ++featureCounter) {
+			
+			feature = randomNumberGenerator.nextInt(maximumFeatureValue);
+			features.add(Arrays.asList(Double.valueOf(feature)));
+			if (feature>= 500.0) {
+				labels.add(BinaryDataLabel.NEGATIVE_LABEL);
+			} else {
+				labels.add(BinaryDataLabel.POSITIVE_LABEL);
+			}
+
+		}
 		
 		SupportVectorMachine svmClassifier = new SupportVectorMachine(SupportVectorMachine.DEFAULT_NUMBER_OF_EPOCHS, SupportVectorMachine.DEFAULT_CROSS_VALIDATION_SPLITS, SupportVectorMachine.DEFAULT_LEARNING_RATES, SupportVectorMachine.DEFAULT_TRADEOFF_VALUES, new IdentityKernel(), true);
 		svmClassifier.fit(features, labels);
 
-		System.out.println("Weight vector is " + svmClassifier.getWeightVector() + ".");
+		List<List<Double>> testFeatures = new ArrayList<List<Double>>();
 		
-		List<Double> testFeatures = Arrays.asList(Double.valueOf(12.5), Double.valueOf(11.5), Double.valueOf(102.5), Double.valueOf(-12.5), Double.valueOf(55.5), Double.valueOf(33.5), Double.valueOf(35.6), Double.valueOf(39.5), Double.valueOf(43.5));
-		for (Double testFeature : testFeatures) {
-			System.out.println("Feature " + testFeature.toString() + " has label " + svmClassifier.getPrediction(Arrays.asList(testFeature)));
+		for (int featureCounter = 0; featureCounter < numberOfTestFeaturesPerLabel; ++featureCounter) {
+			
+			feature = randomNumberGenerator.nextInt(maximumFeatureValue);
+			testFeatures.add(Arrays.asList(Double.valueOf(feature)));
+
+		}
+		
+		System.out.println("Weight vector is " + svmClassifier.getWeightVector() + ".");
+
+		for (List<Double> testFeature : testFeatures) {
+			System.out.println("Feature " + testFeature.toString() + " has label " + svmClassifier.getPrediction(testFeature));
 		}
 		
 	}
 	
 	private void runWith2dFeatures() {
 		
+		int numberOfFeaturesPerLabel = 500, numberOfTestFeaturesPerLabel = 20,maximumFeatureValue = 1000;
+		Random randomNumberGenerator = new Random(0);
+		int feature11 = 0, feature12 = 0, feature21 = 0, feature22 = 0;
+				
 		List<List<Double>> features = new ArrayList<List<Double>>();
-		features.add(Arrays.asList(Double.valueOf(4.0), Double.valueOf(5.0)));
-		features.add(Arrays.asList(Double.valueOf(6.0), Double.valueOf(5.0)));
-		features.add(Arrays.asList(Double.valueOf(5.0), Double.valueOf(3.0)));
-		features.add(Arrays.asList(Double.valueOf(5.0), Double.valueOf(6.0)));
-		features.add(Arrays.asList(Double.valueOf(5.0), Double.valueOf(5.0)));
-
-		features.add(Arrays.asList(Double.valueOf(1.0), Double.valueOf(1.0)));
-		features.add(Arrays.asList(Double.valueOf(2.0), Double.valueOf(2.0)));
-		features.add(Arrays.asList(Double.valueOf(1.0), Double.valueOf(2.0)));
-		features.add(Arrays.asList(Double.valueOf(1.1), Double.valueOf(1.0)));
-		features.add(Arrays.asList(Double.valueOf(2.5), Double.valueOf(1.0)));
-		
 		List<BinaryDataLabel> labels = new ArrayList<BinaryDataLabel>();
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
-		labels.add(BinaryDataLabel.POSITIVE_LABEL);
 		
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		labels.add(BinaryDataLabel.NEGATIVE_LABEL);
-		
-		SupportVectorMachine svmClassifier = new SupportVectorMachine(SupportVectorMachine.DEFAULT_NUMBER_OF_EPOCHS, SupportVectorMachine.DEFAULT_CROSS_VALIDATION_SPLITS, SupportVectorMachine.DEFAULT_LEARNING_RATES, SupportVectorMachine.DEFAULT_TRADEOFF_VALUES, new IdentityKernel(), false);
+		for (int featureCounter = 0; featureCounter < numberOfFeaturesPerLabel; ++featureCounter) {
+			
+			feature11 = randomNumberGenerator.nextInt(maximumFeatureValue);
+			feature12 = randomNumberGenerator.nextInt(feature11);
+			features.add(Arrays.asList(Double.valueOf(feature11), Double.valueOf(feature12)));
+			labels.add(BinaryDataLabel.NEGATIVE_LABEL);
+			
+			feature21 = randomNumberGenerator.nextInt(maximumFeatureValue);
+			feature22 = randomNumberGenerator.nextInt(maximumFeatureValue- feature21) + feature21;
+			features.add(Arrays.asList(Double.valueOf(feature21), Double.valueOf(feature22)));
+			labels.add(BinaryDataLabel.POSITIVE_LABEL);
+
+		}
+
+		SupportVectorMachine svmClassifier = new SupportVectorMachine(SupportVectorMachine.DEFAULT_NUMBER_OF_EPOCHS, SupportVectorMachine.DEFAULT_CROSS_VALIDATION_SPLITS, SupportVectorMachine.DEFAULT_LEARNING_RATES, SupportVectorMachine.DEFAULT_TRADEOFF_VALUES, new IdentityKernel(), true);
 		svmClassifier.fit(features, labels);
 		
-		List<Double> testFeature = Arrays.asList(Double.valueOf(4.5), Double.valueOf(4.5));
-		System.out.println("Feature " + testFeature + " has label " + svmClassifier.getPrediction(testFeature));
+		List<List<Double>> testFeatures = new ArrayList<List<Double>>();
 		
-		testFeature = Arrays.asList(Double.valueOf(1.0), Double.valueOf(1.1));
-		System.out.println("Feature " + testFeature + " has label " + svmClassifier.getPrediction(testFeature));
+		for (int featureCounter = 0; featureCounter < numberOfTestFeaturesPerLabel; ++featureCounter) {
+			
+			feature11 = randomNumberGenerator.nextInt(maximumFeatureValue);
+			feature12 = randomNumberGenerator.nextInt(feature11);
+			testFeatures.add(Arrays.asList(Double.valueOf(feature11), Double.valueOf(feature12)));
+			
+			feature21 = randomNumberGenerator.nextInt(maximumFeatureValue);
+			feature22 = randomNumberGenerator.nextInt(maximumFeatureValue- feature21) + feature21;
+			testFeatures.add(Arrays.asList(Double.valueOf(feature21), Double.valueOf(feature22)));
+
+		}		
+		
+		testFeatures.add(Arrays.asList(Double.valueOf(750), Double.valueOf(751)));
+
+		for (List<Double> testFeature : testFeatures) {
+			
+			System.out.println("Feature " + testFeature + " has label " + svmClassifier.getPrediction(testFeature));
+			
+		}
+
 	}
+
 }

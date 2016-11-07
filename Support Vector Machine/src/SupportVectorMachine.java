@@ -25,6 +25,7 @@ public class SupportVectorMachine {
 	private boolean runInDebug;
 	private PrintWriter out;
 	private double currentLearningRate;
+	private List<Double> svmObjectiveTrend;
 	
 	/**
 	 * Constructor using default values
@@ -58,6 +59,7 @@ public class SupportVectorMachine {
 			e.printStackTrace();
 			System.exit(0);
 		}
+		this.svmObjectiveTrend = new ArrayList<Double>();
 	}
 	
 	/**
@@ -132,6 +134,9 @@ public class SupportVectorMachine {
 						weightVector = runStochasticGradientDescent(trainingDataSubsetFeatures, trainingDataSubsetLabels, tradeoffValue.doubleValue(), weightVector);
 					
 					}
+					
+					log("SVM Objective Trend: " + this.svmObjectiveTrend);
+					this.svmObjectiveTrend.clear();
 					
 					//Use the weight vector to run predictions
 					List<BinaryDataLabel> predictions = getPredictions(testingDataSubsetFeatures, weightVector);
@@ -425,6 +430,8 @@ public class SupportVectorMachine {
 		double currentSvmObjectiveValue = 0.5 * KernelImplementation.getDotProduct(currentWeightVector, currentWeightVector);
 		
 		currentSvmObjectiveValue += currentTradeoffValue * Math.max(0.0, 1 - currentFeatureLabel.getValue() * KernelImplementation.getDotProduct(currentWeightVector, currentFeatureVector));
+		
+		this.svmObjectiveTrend.add(currentSvmObjectiveValue);
 		
 		return currentSvmObjectiveValue;
 		

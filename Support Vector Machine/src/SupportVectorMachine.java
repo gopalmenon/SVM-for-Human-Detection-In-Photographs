@@ -26,6 +26,8 @@ public class SupportVectorMachine {
 	private PrintWriter out;
 	private double currentLearningRate;
 	private List<Double> svmObjectiveTrend;
+	private List<Double> bestSvmObjectiveTrend;
+	private int stochasticGradientDescentCounter;
 	
 	/**
 	 * Constructor using default values
@@ -60,6 +62,8 @@ public class SupportVectorMachine {
 			System.exit(0);
 		}
 		this.svmObjectiveTrend = new ArrayList<Double>();
+		this.bestSvmObjectiveTrend = new ArrayList<Double>();
+		
 	}
 	
 	/**
@@ -126,6 +130,7 @@ public class SupportVectorMachine {
 						if (firstTime) {
 							firstTime = false;
 							this.currentLearningRate = learningRate.doubleValue();
+							this.stochasticGradientDescentCounter = 0;
 						} else {
 							shuffleTrainingData(trainingDataSubsetFeatures, trainingDataSubsetLabels);
 						}
@@ -134,9 +139,6 @@ public class SupportVectorMachine {
 						weightVector = runStochasticGradientDescent(trainingDataSubsetFeatures, trainingDataSubsetLabels, tradeoffValue.doubleValue(), weightVector);
 					
 					}
-					
-					log("SVM Objective Trend: " + this.svmObjectiveTrend);
-					this.svmObjectiveTrend.clear();
 					
 					//Use the weight vector to run predictions
 					List<BinaryDataLabel> predictions = getPredictions(testingDataSubsetFeatures, weightVector);
@@ -152,11 +154,12 @@ public class SupportVectorMachine {
 				if (averageAccuracy > maximumAccuracy) {
 					maximumAccuracy = averageAccuracy;
 					this.weightVector = weightVector;
+					this.bestSvmObjectiveTrend = this.svmObjectiveTrend;
 				}
 			}
 		
 		}
-		
+
 	}
 	
 	/**
@@ -348,10 +351,10 @@ public class SupportVectorMachine {
 	private List<Double> runStochasticGradientDescent(List<List<Double>> trainingDataSubsetFeatures, List<BinaryDataLabel> trainingDataSubsetLabels, double tradeoffValue, List<Double> weightVector) {
 		
 		//Loop through each training record sample
-		int featureVectorCounter = 0,stochasticGradientDescentCounter = 0;
+		int featureVectorCounter = 0;
 		for (List<Double> featureVector : trainingDataSubsetFeatures) {
 		
-			this.currentLearningRate = getNextLearningRate(stochasticGradientDescentCounter++, this.currentLearningRate, tradeoffValue);
+			this.currentLearningRate = getNextLearningRate(this.stochasticGradientDescentCounter++, this.currentLearningRate, tradeoffValue);
 			
 			log("\nCurrent Learning Rate: " + Double.valueOf(this.currentLearningRate).toString());
 			log("Current SVM Objective: " + Double.valueOf(getCurrentSvmObjectiveValue(weightVector, adjustForBias(featureVector), trainingDataSubsetLabels.get(featureVectorCounter), tradeoffValue)).toString());
@@ -413,6 +416,10 @@ public class SupportVectorMachine {
 		return this.weightVector;
 	}
 	
+	public List<Double> getBestSvmObjectiveTrend() {
+		return this.bestSvmObjectiveTrend;
+	}
+	
 	/**
 	 * Method that can be used for debugging. This will return the current value of the objective and this should reduce over time.
 	 * 
@@ -423,17 +430,42 @@ public class SupportVectorMachine {
 	 */
 	private double getCurrentSvmObjectiveValue(List<Double> currentWeightVector, List<Double> currentFeatureVector, BinaryDataLabel currentFeatureLabel, double currentTradeoffValue) {
 		
-		log("Current weight vector: " + currentWeightVector);
-		log("Current feature vector: " + currentFeatureVector);
-		log("Current label: " + currentFeatureLabel);
+		if (this.runInDebug) {
+			double currentSvmObjectiveValue = 0.5 * KernelImplementation.getDotProduct(currentWeightVector, currentWeightVector);
+			
+			currentSvmObjectiveValue += currentTradeoffValue * Math.max(0.0, 1 - currentFeatureLabel.getValue() * KernelImplementation.getDotProduct(currentWeightVector, currentFeatureVector));
+			
+			this.svmObjectiveTrend.add(currentSvmObjectiveValue);
+			
+			return currentSvmObjectiveValue;
+			
+		} else {
+			
+			return Double.valueOf(0.0);
+			
+		}
+	}
+	
+	/**
+	 * Print the best SVM Objective trend
+	 */
+	public void printBestSvmObjectiveTrend() {
 		
-		double currentSvmObjectiveValue = 0.5 * KernelImplementation.getDotProduct(currentWeightVector, currentWeightVector);
+		this.out.print("c(");
 		
-		currentSvmObjectiveValue += currentTradeoffValue * Math.max(0.0, 1 - currentFeatureLabel.getValue() * KernelImplementation.getDotProduct(currentWeightVector, currentFeatureVector));
+		boolean firstTime = true;
+		for (Double svmObjective : this.bestSvmObjectiveTrend) {
+			
+			if (firstTime) {
+				firstTime = false;
+			} else {
+				this.out.print(", ");
+			}
+			
+			this.out.print(svmObjective.toString());
+		}
 		
-		this.svmObjectiveTrend.add(currentSvmObjectiveValue);
-		
-		return currentSvmObjectiveValue;
+		this.out.print(")");
 		
 	}
 	

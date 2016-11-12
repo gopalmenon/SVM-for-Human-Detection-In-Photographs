@@ -9,15 +9,15 @@ public class ClassifierClient {
 	public static void main(String[] args) {
 		
 		ClassifierClient classifierClient = new ClassifierClient();
-		//classifierClient.runWith1dFeatures();
-		classifierClient.runWith2dFeatures();
+		classifierClient.runWith1dFeatures();
+		//classifierClient.runWith2dFeatures();
 		
 	}
 
 	private void runWith1dFeatures() {
 		
 		
-		int numberOfFeaturesPerLabel = 1000, numberOfTestFeaturesPerLabel = 20, maximumFeatureValue = 1000;
+		int numberOfFeaturesPerLabel = 10000, numberOfTestFeaturesPerLabel = 20, maximumFeatureValue = 1000;
 		Random randomNumberGenerator = new Random(0);
 		double feature = 0.0;
 				
@@ -36,7 +36,7 @@ public class ClassifierClient {
 
 		}
 		
-		SupportVectorMachine svmClassifier = new SupportVectorMachine(SupportVectorMachine.DEFAULT_NUMBER_OF_EPOCHS, SupportVectorMachine.DEFAULT_CROSS_VALIDATION_SPLITS, SupportVectorMachine.DEFAULT_LEARNING_RATES, SupportVectorMachine.DEFAULT_TRADEOFF_VALUES, new IdentityKernel(), true);
+		SupportVectorMachine svmClassifier = new SupportVectorMachine(SupportVectorMachine.DEFAULT_NUMBER_OF_EPOCHS, SupportVectorMachine.DEFAULT_CROSS_VALIDATION_SPLITS, SupportVectorMachine.DEFAULT_LEARNING_RATES, SupportVectorMachine.DEFAULT_TRADEOFF_VALUES, new IdentityKernel(), false);
 		svmClassifier.fit(features, labels);
 
 		List<List<Double>> testFeatures = new ArrayList<List<Double>>();
@@ -54,6 +54,8 @@ public class ClassifierClient {
 			System.out.println("Feature " + testFeature.toString() + " has label " + svmClassifier.getPrediction(testFeature));
 		}
 		
+		//svmClassifier.printBestSvmObjectiveTrend();
+
 	}
 	
 	private void runWith2dFeatures() {
@@ -79,7 +81,7 @@ public class ClassifierClient {
 
 		}
 
-		SupportVectorMachine svmClassifier = new SupportVectorMachine(SupportVectorMachine.DEFAULT_NUMBER_OF_EPOCHS, SupportVectorMachine.DEFAULT_CROSS_VALIDATION_SPLITS, SupportVectorMachine.DEFAULT_LEARNING_RATES, SupportVectorMachine.DEFAULT_TRADEOFF_VALUES, new IdentityKernel(), true);
+		SupportVectorMachine svmClassifier = new SupportVectorMachine(SupportVectorMachine.DEFAULT_NUMBER_OF_EPOCHS, SupportVectorMachine.DEFAULT_CROSS_VALIDATION_SPLITS, SupportVectorMachine.DEFAULT_LEARNING_RATES, SupportVectorMachine.DEFAULT_TRADEOFF_VALUES, new IdentityKernel(), false);
 		svmClassifier.fit(features, labels);
 		
 		List<List<Double>> testFeatures = new ArrayList<List<Double>>();
@@ -103,6 +105,8 @@ public class ClassifierClient {
 			System.out.println("Feature " + testFeature + " has label " + svmClassifier.getPrediction(testFeature));
 			
 		}
+		
+		//svmClassifier.printBestSvmObjectiveTrend();
 
 	}
 

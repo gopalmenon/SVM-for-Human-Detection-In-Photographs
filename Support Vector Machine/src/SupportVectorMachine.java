@@ -474,4 +474,11 @@ public class SupportVectorMachine {
 		
 	}
 	
+	/**
+	 * Close the log file
+	 */
+	public void closeLogFile() {
+		this.out.close();
+	}
+	
 }

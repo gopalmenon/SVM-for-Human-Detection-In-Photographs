@@ -125,6 +125,8 @@ public class SvmClient {
 		this.out.println(classificationType + " Recall on training set: " + this.decimalFormat.format(classifierMetrics.getRecall()));
 		this.out.println(classificationType + " F1 Score on training set: " + this.decimalFormat.format(classifierMetrics.getF1Score()));
 		
+		svmClassifier.closeLogFile();
+		
 	}
 
 }

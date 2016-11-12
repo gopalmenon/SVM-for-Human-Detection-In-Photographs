@@ -12,8 +12,8 @@ import java.util.Random;
 public class SupportVectorMachine {
 
 	public static final int DEFAULT_NUMBER_OF_EPOCHS = 20, DEFAULT_CROSS_VALIDATION_SPLITS = 5, NUMBER_OF_CROSS_VALIDATION_FOLDS = 6, MINIMUM_SHUFFLES = 100;
-	public static final List<Double> DEFAULT_LEARNING_RATES = Arrays.asList(Math.pow(2.0, 1.0), Math.pow(2.0, 0.0), Math.pow(2.0, -1.0), Math.pow(2.0, -2.0), Math.pow(2.0, -3.0), Math.pow(2.0, -4.0), Math.pow(2.0, -5.0), Math.pow(2.0, -6.0), Math.pow(2.0, -7.0), Math.pow(2.0, -8.0), Math.pow(2.0, -9.0), Math.pow(2.0, -10.0));
-	public static final List<Double> DEFAULT_TRADEOFF_VALUES = Arrays.asList(Math.pow(10.0, 1.0), Math.pow(10.0, 0.0), Math.pow(10.0, -1.0), Math.pow(10.0, -2.0), Math.pow(10.0, -3.0), Math.pow(10.0, -4.0), Math.pow(10.0, -5.0), Math.pow(10.0, -6.0), Math.pow(10.0, -7.0), Math.pow(10.0, -8.0), Math.pow(10.0, -9.0), Math.pow(10.0, -10.0));
+	public static final List<Double> DEFAULT_LEARNING_RATES = Arrays.asList(Math.pow(10.0, 1.0), Math.pow(10.0, 0.0), Math.pow(10.0, -1.0), Math.pow(10.0, -2.0), Math.pow(10.0, -3.0), Math.pow(10.0, -4.0), Math.pow(10.0, -5.0), Math.pow(10.0, -6.0), Math.pow(10.0, -7.0), Math.pow(10.0, -8.0), Math.pow(10.0, -9.0), Math.pow(10.0, -10.0));
+	public static final List<Double> DEFAULT_TRADEOFF_VALUES = Arrays.asList(Math.pow(2.0, 1.0), Math.pow(2.0, 0.0), Math.pow(2.0, -1.0), Math.pow(2.0, -2.0), Math.pow(2.0, -3.0), Math.pow(2.0, -4.0), Math.pow(2.0, -5.0), Math.pow(2.0, -6.0), Math.pow(2.0, -7.0), Math.pow(2.0, -8.0), Math.pow(2.0, -9.0), Math.pow(2.0, -10.0));
 	public static final String LOG_FILE_NAME = "LogFile.txt";
 	
 	private int numberOfEpochsForTraining;
@@ -78,15 +78,11 @@ public class SupportVectorMachine {
 		//Run through multiple learning rates
 		for (Double learningRate : this.learningRatesForTraining) {
 			
-			log("Current Learning Rate: " + Double.valueOf(learningRate).toString());
-			
 			List<Double> weightVector = null;
 			
 			//Run through multiple tradeoff values
 			for (Double tradeoffValue : this.tradeoffValuesForTraining) {
 				
-				log("Current tradeoff value: " + Double.valueOf(tradeoffValue).toString());
-
 				//Run k-fold cross validation
 				double averageAccuracy = 0.0;
 				
@@ -94,8 +90,6 @@ public class SupportVectorMachine {
 
 				for (int crossValidationCounter = 0; crossValidationCounter < this.crossValidationSplits; ++crossValidationCounter) {
 				
-					log("Current cross validation counter: " + Integer.valueOf(crossValidationCounter).toString());
-
 					//Load training and testing data
 					List<List<Double>> trainingDataSubsetFeatures = new ArrayList<List<Double>>();
 					List<BinaryDataLabel> trainingDataSubsetLabels = new ArrayList<BinaryDataLabel>();
@@ -124,8 +118,6 @@ public class SupportVectorMachine {
 					boolean firstTime = true;
 					for (int epochCounter = 0; epochCounter < this.numberOfEpochsForTraining; ++ epochCounter) {
 						
-						log("Current epoch: " + Integer.valueOf(epochCounter).toString());
-
 						//Shuffle the training data for each subsequent epoch
 						if (firstTime) {
 							firstTime = false;
@@ -151,6 +143,9 @@ public class SupportVectorMachine {
 				
 				//If this is the most accurate classification save the weight vector
 				averageAccuracy /= this.crossValidationSplits;
+				
+				log("Learning rate: " + learningRate + ", tradeoff value: " + tradeoffValue + ", average accuracy: " + averageAccuracy);
+				
 				if (averageAccuracy > maximumAccuracy) {
 					maximumAccuracy = averageAccuracy;
 					this.weightVector = weightVector;
@@ -355,9 +350,6 @@ public class SupportVectorMachine {
 		for (List<Double> featureVector : trainingDataSubsetFeatures) {
 		
 			this.currentLearningRate = getNextLearningRate(this.stochasticGradientDescentCounter++, this.currentLearningRate, tradeoffValue);
-			
-			log("\nCurrent Learning Rate: " + Double.valueOf(this.currentLearningRate).toString());
-			log("Current SVM Objective: " + Double.valueOf(getCurrentSvmObjectiveValue(weightVector, adjustForBias(featureVector), trainingDataSubsetLabels.get(featureVectorCounter), tradeoffValue)).toString());
 			
 			if (trainingDataSubsetLabels.get(featureVectorCounter).getValue() * this.kernel.getDotProductInFeatureSpace(weightVector, adjustForBias(featureVector)) <= 1) {
 				weightVector = getSumOfVectors(multiplyWithVector(1 - this.currentLearningRate, weightVector), multiplyWithVector(this.currentLearningRate * tradeoffValue * trainingDataSubsetLabels.get(featureVectorCounter).getValue(), adjustForBias(featureVector)));

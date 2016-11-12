@@ -10,7 +10,7 @@ public class ClassifierClient {
 		
 		ClassifierClient classifierClient = new ClassifierClient();
 		classifierClient.runWith1dFeatures();
-		//classifierClient.runWith2dFeatures();
+		classifierClient.runWith2dFeatures();
 		
 	}
 

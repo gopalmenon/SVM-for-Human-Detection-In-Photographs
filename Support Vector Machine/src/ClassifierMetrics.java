@@ -38,7 +38,7 @@ public class ClassifierMetrics {
 		this.precision = (double) truePositives /(truePositives + falsePositives);
 		this.recall = (double) truePositives /(truePositives + falseNegatives);
 		this.accuracy = (double) (truePositives + trueNegatives) / predictions.size();
-		this.f1Score = (double) (2 * truePositives) / (2 * truePositives + falsePositives + falseNegatives);
+		this.f1Score = (double) (2 * this.precision * this.recall) / (this.precision + this.recall);
 
 	}
 

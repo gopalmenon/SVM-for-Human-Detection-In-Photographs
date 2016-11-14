@@ -326,7 +326,7 @@
 % not capitalized unless they are the first or last word of the title.
 % Linebreaks \\ can be used within to get better formatting as desired.
 % Do not put math or special symbols in the title.
-\title{Detection of Pedestrians in Images using SVM\\Project Proposal}
+\title{Detection of Pedestrians in Images using SVM\\Project Intermediate Status Report}
 
 
 % author names and affiliations
@@ -390,22 +390,9 @@ Fall 2016, University of Utah}
 % creates the second title. It will be ignored for other modes.
 \IEEEpeerreviewmaketitle
 
-\section{Project Structure}
-
-\subsection{Project Team}
-I will be the sole team member. 
-
-\subsection{Project Type}
-I will be doing a regular project.
-
 \section{Project Scope}
 
-The scope will be to construct a classifier using a Support Vector Machine (SVM) that can classify a street image as one containing or not containing a pedestrian. This could have multiple uses like a driverless car avoiding pedestrians and search and rescue assistance by robots that can identify places that have people who need help. The primary use in the case of this project would be to help me in better understanding SVMs.
-
-\section{Why it is interesting}
-The main reason why it is interesting to me is that it is one of those problems that can be easily explained to a human, while being extremely difficult to program using traditional methods. Also at the present moment I am not sure how SVMs work, and this makes it more interesting.
-
-Based on my current and somewhat incomplete understanding of how SVMs work, I have gathered that they can classify pictures by first converting a pixel array into a long vector. The problem then becomes one where you train the SVM on a dataset of images that are used as long vectors of pixel values. SVMs work by converting the input to a higher dimension where the datasets can be linearly separated. 
+The scope will be to construct a classifier using a Support Vector Machine (SVM) that can classify a street image as one containing or not containing a pedestrian. The main reason why it is interesting to me is that it is one of those problems that can be easily explained to a human, while being extremely difficult to program using traditional methods. 
 
 \begin{figure}[!t]
 \centering
@@ -416,6 +403,8 @@ Based on my current and somewhat incomplete understanding of how SVMs work, I ha
 
 Although there may be many separating boundaries as shown in figure \ref{which}, the linear separation is achieved by selecting a boundary that maximizes the separation between the classes. The vectors that lie on the separating band are called support vectors. These are shown as the solid squares and circle in figure \ref{max}.
 
+When I started with the project, I went forward with the assumption that through use of a suitable kernel function, images can be linearly separated into ones that contain and do not contain a human. Since then, I learnt during office hours after class that this may not be possible However I am not sure why it is not possible. One suggestion I got during office hours was to use the input to the final layer of a Visual Geometry Group (VGG) Very Deep Convolutional Net (VGG NET) classifier \cite{VGG} as features for an SVM to do linear separation. 
+
 \begin{figure}[!t]
 \centering
 \includegraphics[width=2.0in]{./figures/MaxMargin.png}
@@ -423,26 +412,83 @@ Although there may be many separating boundaries as shown in figure \ref{which},
 \label{max}
 \end{figure}
 
-\section{Strategy}
-I plan to split the project into the following parts:
+\section{Progress}
+
+\subsection{Literature and Resources used}
+
 \begin{enumerate}
 
-\item Understand the working of SVMs
-\item Understand the working of Kernels
-\item Research on how to obtain a bit array from a JPEG image
-\item Choose a programming language based on the amount of computation that will be needed
-\item Collect pedestrian images from the internet
-\item Build and test
+\item Since I needed to start work on the project before SVMs were covered in class, I used the class recordings from last year to get familiarized with the subject. 
+
+\item In addition to the class recordings, I also used SVM class recordings from a Caltech course on machine learning available at \url{http://amlbook.com} and based on the book \textit{Learning from Data: A Short Course} \cite{AMLBook}. 
+
+\item Once I got comfortable with the material, I referred to the SVM book by Christiani et. al. 2000 \cite{Christiani} for an understanding of the dual form of linear learning machines and kernel functions.
 
 \end{enumerate}
 
-\section{Relevance}
+\subsection{Current Status}
 
-I wanted to choose a topic that was related to the course material that we plan to cover. I saw that SVMs are going to be covered and that influenced my choice of project. I  wanted to do a project on a topic that was part of the syllabus. Plus this was listed in the project ideas on the class web page.
+\begin{enumerate}
+
+\item I have coded an SVM in Java that finds the separator with maximum margin when it is given a training set where each training set entry is an array of floating point numbers. There is no maximum or minimum limitation for the dimensionality of the training set, but all the training and test set entries must have the same dimensionality. The SVM needs to be provided an object that is an instance of a class that implements a method that returns the dot product of its inputs in a different space. I have successfully tested the SVM with a kernel that just returns the dot product of its inputs by giving it one-dimensional and two-dimensional inputs.
+
+\item I have coded the following kernels in addition to the trivial implementation mentioned above. These are based on the kernels described in the book \textit{Learning from Data: A Short Course} \cite{AMLBook}. 
+
+\begin{enumerate}
+
+\item Polynomial Kernel
+
+\item Degree Q Polynomial Kernel
+
+\item Gaussian Radial Bias Function Kernel
+
+\end{enumerate}
+
+\item I have obtained test data consisting of images containing humans and those not containing humans. The images were downloaded from the \textit{INRIA Person Dataset} \cite{INRIA}.
+
+\end{enumerate}
+
+\section{Strategy}
+
+\subsection{Further Work}
+
+\begin{enumerate}
+
+\item Understand the working of SVMs with Kernels
+\item Understand the limitations of SVMs particularly why they cannot classify images
+\item Understand VGG Net classifier
+\item Obtain an implementation of VGG Net classifier
+\item Perform any image pre-processing that is required by a VGG Net classifier.
+\item Build and test a pedestrian image classifier using the input to the last layer of a VGG Net classifier as input to an SVM. 
+
+\end{enumerate}
+
+\section{Classifier Evaluation}
+
+\begin{enumerate}
+
+\item The VGG Net classifier can be used as a baseline for evaluating the SVM classifier. Since I plan to use the input to the last layer of the VGG Net classifier as the input to the SVM, I expect both the baseline and the SVM classifier to have similar results. The reason I say this is because the last layer of a VGG Net classifier will function as a linear threshold detector, or a perceptron, which will be possible to recreate using an SVM.
+
+\item In addition to comparing the accuracy of the implemented SVM classifier with that of a VGG Net classifier, I also plan to do manual checks in order to make sure that the results are accurate.
+
+\end{enumerate}
+
 \begin{thebibliography}{1}
 
 \bibitem{SVMPage}
 \enquote{Introduction to Support Vector Machines.} \textit{Introduction to Support Vector Machines} - OpenCV 2.4.13.1 Documentation. N.p., n.d. Web. 27 Sept. 2016.
+
+\bibitem{AMLBook}
+Abu-Mostafa, Yaser S., Malik Magdon-Ismail, and Hsuan-Tien Lin. \textit{Learning from Data: A Short Course}. United States: AMLBook.com, 2012. Print.
+
+\bibitem{Christiani}
+Cristianini, Nello, and John Shawe-Taylor. \textit{An Introduction to Support Vector Machines: And Other Kernel-based Learning Methods}. Cambridge: Cambridge UP, 2000. Print.
+
+\bibitem{INRIA}
+\enquote{INRIA Person Dataset.} \textit{INRIA Person Dataset}. N.p., n.d. Web. 08 Nov. 2016.
+\bibitem{VGG}
+\enquote{Visual Geometry Group Home Page.} \textit{Visual Geometry Group Home Page}. N.p., n.d. Web. 08 Nov. 2016.
+
 \end{thebibliography}
 
 \end{document}

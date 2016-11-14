@@ -1,14 +1,10 @@
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 import java.util.Random;
 import java.util.Set;
 
@@ -147,50 +143,16 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 	 * @param featureToPartitionOn
 	 * @return the information gain or expected reduction in entropy by partitioning on an attribute 
 	 */
-	private double getInformationGain(List<List<Double>> trainingData, List<BinaryDataLabel> trainingDataLabels, int featureToPartitionOn) {
+	private InformationGainAndFeatureValue getInformationGain(List<List<Double>> trainingData, List<BinaryDataLabel> trainingDataLabels, int featureToPartitionOn) {
 		
 		//Feature to partition on must be one of the columns
 		assert featureToPartitionOn <= trainingData.get(0).size();
 		
 		if (this.continuousFeatures) {
-			getInformationGainForContinuousFeatures(trainingData, trainingDataLabels, featureToPartitionOn);		
+			return getInformationGainForContinuousFeatures(trainingData, trainingDataLabels, featureToPartitionOn);		
 		} else {
-			getInformationGainForBinaryFeatures(trainingData, trainingDataLabels, featureToPartitionOn);		
+			return getInformationGainForBinaryFeatures(trainingData, trainingDataLabels, featureToPartitionOn);		
 		}
-		
-		Map<Character, FeatureValueCounts> counts = new HashMap<Character, FeatureValueCounts>();
-		Iterator<List<Character>> trainingDataIterator = trainingData.iterator();
-		
-		List<Character> trainingDataRecord = null;
-		char trainingDataRecordLabel = ' ';
-		Character featureValue = null;
-		FeatureValueCounts existingFeatureValueCounts = null;
-				
-		while (trainingDataIterator.hasNext()) {
-			
-			trainingDataRecord = trainingDataIterator.next();
-			featureValue = trainingDataRecord.get(featureToPartitionOn);
-			trainingDataRecordLabel = trainingDataRecord.get(this.labelOffset).charValue();
-			
-			if (counts.containsKey(featureValue)) {
-				existingFeatureValueCounts = counts.get(featureValue);
-				if (trainingDataRecordLabel == this.firstLabel) {
-					existingFeatureValueCounts.incrementFirstLabelCount();
-				} else {
-					existingFeatureValueCounts.incrementSecondLabelCount();
-				}
-				counts.put(featureValue, existingFeatureValueCounts);
-			} else {
-				if (trainingDataRecordLabel == this.firstLabel) {
-					counts.put(featureValue, this.new FeatureValueCounts(1, 0));
-				} else {
-					counts.put(featureValue, this.new FeatureValueCounts(0, 1));
-				}
-			}
-			
-		}
-		
-		return getCollectionEntropy(trainingDataLabels) - getWeightedFeatureValuesEntropy(counts);
 		
 	}
 	
@@ -200,7 +162,7 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 	 * @param featureToPartitionOn
 	 * @return the information gain or expected reduction in entropy by partitioning on an attribute
 	 */
-	private EntropyGainAndFeatureValue getInformationGainForContinuousFeatures(List<List<Double>> trainingData, List<BinaryDataLabel> trainingDataLabels, int featureToPartitionOn) {
+	private InformationGainAndFeatureValue getInformationGainForContinuousFeatures(List<List<Double>> trainingData, List<BinaryDataLabel> trainingDataLabels, int featureToPartitionOn) {
 		
 		//Combine the data and labels into a single list so that they can be sorted together 
 		List<DataAndLabel> combinedDataAndLabels = DataAndLabel.getCombinDataAndLabels(trainingData, trainingDataLabels);
@@ -213,7 +175,6 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 		
 		//Run through the sorted feature and find potential splitting points
 		boolean firstTime = true;
-		double previousAttributeValue = 0.0;
 		BinaryDataLabel previousLabel = null;
 		Set<Double> potentialAttributesToSplitOn = new HashSet<Double>();
 		
@@ -223,28 +184,27 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 				firstTime = false;
 			} else {
 				if (dataAndLabel.getLabel() != previousLabel) {
-					potentialAttributesToSplitOn.add(previousAttributeValue);
+					potentialAttributesToSplitOn.add(dataAndLabel.getData().get(featureToPartitionOn));
 				}
 			}
-			previousAttributeValue = dataAndLabel.getData().get(featureToPartitionOn);
 			previousLabel = dataAndLabel.getLabel();
 		}
 		
 		//Find the point where splitting will result in maximum entropy gain
-		double maximumEntropyGain = Double.MIN_VALUE, splittingPointForMaximumEntropyGain = 0.0, currentEntropyGain = 0.0;
+		double maximumEntropyGain = Double.MIN_VALUE, splittingPointForMaximumEntropyGain = 0.0, currentInformationGain = 0.0;
 		for (Double splittingPoint : potentialAttributesToSplitOn) {
 		
-			currentEntropyGain = getCollectionEntropy(trainingDataLabels) - getEntropyOnSplit(combinedDataAndLabels, splittingPoint, featureToPartitionOn);
-			if (currentEntropyGain > maximumEntropyGain) {
+			currentInformationGain = getCollectionEntropy(trainingDataLabels) - getEntropyOnSplit(combinedDataAndLabels, splittingPoint, featureToPartitionOn);
+			if (currentInformationGain > maximumEntropyGain) {
 				
-				maximumEntropyGain = currentEntropyGain;
+				maximumEntropyGain = currentInformationGain;
 				splittingPointForMaximumEntropyGain = splittingPoint;
 				
 			}
 
 		}
 		
-		return this.new EntropyGainAndFeatureValue(maximumEntropyGain, splittingPointForMaximumEntropyGain);
+		return this.new InformationGainAndFeatureValue(maximumEntropyGain, splittingPointForMaximumEntropyGain);
 
 	}
 	
@@ -252,23 +212,31 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 	 * Class to store entropy gain and feature value that resulted in the gain
 	 *
 	 */
-	private class EntropyGainAndFeatureValue {
-		private double entropyGain;
+	private class InformationGainAndFeatureValue {
+		private double informationGain;
 		private double featureValue;
-		public EntropyGainAndFeatureValue(double entropyGain, double featureValue) {
-			this.entropyGain = entropyGain;
+		public InformationGainAndFeatureValue(double informationGain, double featureValue) {
+			this.informationGain = informationGain;
 			this.featureValue = featureValue;
 		}
-		public double getEntropyGain() {
-			return entropyGain;
+		public double getInformationGain() {
+			return informationGain;
 		}
 		public double getFeatureValue() {
 			return featureValue;
 		}
 	}
 	
-	private double getInformationGainForBinaryFeatures(List<List<Double>> trainingData, List<BinaryDataLabel> trainingDataLabels, int featureToPartitionOn) {
-		return 0.0;
+	/**
+	 * @param trainingData
+	 * @param trainingDataLabels
+	 * @param featureToPartitionOn
+	 * @return the information gain or expected reduction in entropy by partitioning on an attribute
+	 */
+	private InformationGainAndFeatureValue getInformationGainForBinaryFeatures(List<List<Double>> trainingData, List<BinaryDataLabel> trainingDataLabels, int featureToPartitionOn) {
+		
+		return this.new InformationGainAndFeatureValue(getCollectionEntropy(trainingDataLabels) - getEntropyOnSplit(DataAndLabel.getCombinDataAndLabels(trainingData, trainingDataLabels), 0.0, featureToPartitionOn), 0.0);
+		
 	}
 	
 	/**
@@ -320,31 +288,6 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 	}
 	
 	/**
-	 * Store label counts for each value of an attribute
-	 *
-	 */
-	private class FeatureValueCounts {
-		private int firstLabelCount;
-		private int secondLabelCount;
-		public FeatureValueCounts(int firstLabelCount, int secondLabelCount) {
-			this.firstLabelCount = firstLabelCount;
-			this.secondLabelCount = secondLabelCount;
-		}
-		public int getFirstLabelCount() {
-			return firstLabelCount;
-		}
-		public void incrementFirstLabelCount() {
-			++this.firstLabelCount;
-		}
-		public void incrementSecondLabelCount() {
-			++this.secondLabelCount;
-		}
-		public int getSecondLabelCount() {
-			return secondLabelCount;
-		}
-	}
-
-	/**
 	 * Build a decision tree to classify the training data based on the ID3 algorithm 
 	 * @param trainingData
 	 * @param labels
@@ -378,27 +321,26 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 		int numberOfAttributesToUse = Math.min(attributesVector.size(), this.randomNumberGenerator.nextInt(this.numberOfRandomFeaturesToChooseFrom) + 1);
 		Set<Integer> attributesSubset = getAttributesSubset(attributesVector, numberOfAttributesToUse);
 		
-		int bestAttribute = getBestClassifyingAttribute(examples, labels, attributesSubset);
+		BestAttributeAndFeatureValue bestAttributeAndFeatureValue = getBestClassifyingAttribute(examples, labels, attributesSubset);
 		
-		//Create child nodes for each possible value of the attribute to split on
+		//Create child nodes for cases on both sides of the split point
 		List<DecisionTreeNode> childNodes = new ArrayList<DecisionTreeNode>();
-		Set<Character> allPossibleAttributeValues = getAllPossibleAttributeValues(bestAttribute);
 		
-		//For each possible attribute create a new sub tree
-		for (Character attributeValue : allPossibleAttributeValues) {
-		
-			List<List<Character>> trainingDataSubset = getTrainingDataSubset(examples, bestAttribute, attributeValue.charValue());
+		//Create a new sub tree for both sides of the split
+		for (boolean lessThanSplitValue : Arrays.asList(true, false)){
+			
+			List<DataAndLabel> trainingDataSubset = getTrainingDataSubset(examples, labels, bestAttributeAndFeatureValue.getBestAttribute(), bestAttributeAndFeatureValue.getFeatureValue(), lessThanSplitValue);
 			if (trainingDataSubset.size() == 0) {
-				childNodes.add(new DecisionTreeLeafNode(attributeValue.charValue(), getMostCommonTargetAttribute(examples)));
+				childNodes.add(new DecisionTreeLeafNode(bestAttributeAndFeatureValue.getFeatureValue(), getMostCommonTargetAttribute(labels)));
 			} else {
 				Set<Integer> reducedAttributesVector = new HashSet<Integer>(attributesVector);
-				reducedAttributesVector.remove(Integer.valueOf(bestAttribute));
-				childNodes.add(buildDecisionTree(trainingDataSubset, reducedAttributesVector, attributeValue, currentDepth + 1));
+				reducedAttributesVector.remove(Integer.valueOf(bestAttributeAndFeatureValue.getBestAttribute()));
+				childNodes.add(buildDecisionTree(DataAndLabel.getData(trainingDataSubset), DataAndLabel.getLabels(trainingDataSubset), reducedAttributesVector, bestAttributeAndFeatureValue.getFeatureValue(), currentDepth + 1));
 			}
 			
 		}
 		
-		return new DecisionTreeInternalNode(previousAttributeValue, bestAttribute, childNodes);
+		return new DecisionTreeInternalNode(previousAttributeValue, bestAttributeAndFeatureValue.bestAttribute, childNodes);
 		
 	}
 	
@@ -436,73 +378,69 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 	 * @return the attribute that best classifies the examples based on information gain computed from the 
 	 * selection of the attribute that maximizes the reduction in entropy
 	 */
-	private int getBestClassifyingAttribute(List<List<Character>> examples, List<BinaryDataLabel> labels, Set<Integer> attributesVector) {
+	private BestAttributeAndFeatureValue getBestClassifyingAttribute(List<List<Double>> examples, List<BinaryDataLabel> labels, Set<Integer> attributesVector) {
 		
 		int bestAttribute = Integer.MIN_VALUE;
-		double bestInformationGainSoFar = Double.MIN_VALUE, informationGain = 0.0;
+		double bestInformationGainSoFar = Double.MIN_VALUE;
+		InformationGainAndFeatureValue informationGainAndFeatureValue = null;
+		
 		for (Integer attribute : attributesVector) {
 			
-			informationGain = getInformationGain(examples, labels, attribute.intValue());
-			if (informationGain > bestInformationGainSoFar) {
-				bestInformationGainSoFar = informationGain;
+			informationGainAndFeatureValue = getInformationGain(examples, labels, attribute.intValue());
+			if (informationGainAndFeatureValue.getInformationGain() > bestInformationGainSoFar) {
+				bestInformationGainSoFar = informationGainAndFeatureValue.getInformationGain();
 				bestAttribute = attribute.intValue();
 			}
 
 		}
 		
-		return bestAttribute;
+		return this.new BestAttributeAndFeatureValue(bestAttribute, informationGainAndFeatureValue.getFeatureValue());
 	}
 	
 	/**
-	 * @param attribute
-	 * @return a set of all possible values for the attribute
+	 * Class to store best attribute and feature value 
+	 *
 	 */
-	private Set<Character> getAllPossibleAttributeValues(int attribute) {
-		
-		Set<Character> allPossibleAttributeValues = new HashSet<Character>();
-		Properties featureProperties = new Properties();
-		
-		try {
-		
-			//Load attribute values from properties file
-			InputStream inputStream = new FileInputStream(this.propertiesFileName);
-			featureProperties.load(inputStream);
-			
-			String featureName = featureProperties.getProperty(Integer.valueOf(attribute).toString());
-			String commaSeparatedAttributeValues = featureProperties.getProperty(featureName);
-			
-			String[] attributeValuesArray = commaSeparatedAttributeValues.split(ATTRIBUTE_VALUE_SEPARATOR);
-			
-			//Load attribute values into set to be returned
-			for (String attributeValue : attributeValuesArray) {
-				
-				if (attributeValue.trim().length() > 0) {
-					allPossibleAttributeValues.add(Character.valueOf(attributeValue.trim().charAt(0)));
-				}
-				
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.exit(0);
+	private class BestAttributeAndFeatureValue {
+		private int bestAttribute;
+		private double featureValue;
+		public BestAttributeAndFeatureValue(int bestAttribute, double featureValue) {
+			this.bestAttribute = bestAttribute;
+			this.featureValue = featureValue;
 		}
-	
-		return allPossibleAttributeValues;
-	}
+		public int getBestAttribute() {
+			return bestAttribute;
+		}
+		public double getFeatureValue() {
+			return featureValue;
+		}
+	}	
 	
 	/**
 	 * @param trainingData
+	 * @param labels
 	 * @param featureToPartitionOn
-	 * @param featureValue
+	 * @param splitValue
+	 * @param lessThanSplitValue
 	 * @return a subset of the training data containing only those records with matching feature values
 	 */
-	private List<List<Character>> getTrainingDataSubset(List<List<Character>> trainingData, int featureToPartitionOn, char featureValue) {
+	private List<DataAndLabel> getTrainingDataSubset(List<List<Double>> trainingData, List<BinaryDataLabel> labels, int featureToPartitionOn, double splitValue, boolean lessThanSplitValue) {
 				
-		List<List<Character>> trainingDataSubset = new ArrayList<List<Character>>();
-		for (List<Character> trainingDataRecord : trainingData) {
-			if (trainingDataRecord.get(featureToPartitionOn).charValue() == featureValue) {
-				trainingDataSubset.add(new ArrayList<Character>(trainingDataRecord));
+		List<DataAndLabel> trainingDataSubset = new ArrayList<DataAndLabel>();
+		List<DataAndLabel> combinDataAndLabels = DataAndLabel.getCombinDataAndLabels(trainingData, labels);
+
+		for (DataAndLabel dataAndLabel : combinDataAndLabels) {
+			if (lessThanSplitValue) {
+				if (dataAndLabel.getData().get(featureToPartitionOn) < splitValue) {
+					trainingDataSubset.add(dataAndLabel);
+				}
+			} else {
+				if (dataAndLabel.getData().get(featureToPartitionOn) >= splitValue) {
+					trainingDataSubset.add(dataAndLabel);
+				}
 			}
 		}
+		
 		return trainingDataSubset;
 		
 	}

@@ -42,5 +42,36 @@ public class DataAndLabel {
 		return combinedList;
 		
 	}
+	
+	/**
+	 * @param datandLabels
+	 * @return data list
+	 */
+	public static List<List<Double>> getData(List<DataAndLabel> datandLabels) {
+		
+		List<List<Double>> data = new ArrayList<List<Double>>(datandLabels.size());
+		
+		for (DataAndLabel dataAndLabel : datandLabels) {
+			data.add(dataAndLabel.getData());
+		}
+		
+		return data;
+		
+	}
 
+	/**
+	 * @param datandLabels
+	 * @return labels list
+	 */
+	public static List<BinaryDataLabel> getLabels(List<DataAndLabel> datandLabels) {
+		
+		List<BinaryDataLabel> labels = new ArrayList<BinaryDataLabel>(datandLabels.size());
+		
+		for (DataAndLabel dataAndLabel : datandLabels) {
+			labels.add(dataAndLabel.getLabel());
+		}
+		
+		return labels;
+		
+	}
 }

@@ -2,8 +2,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 
 /**
@@ -24,6 +26,9 @@ public class SvmClient {
 	public static final String MADELON_TEST_DATA_FILE = "madelon/madelon_test.data";
 	public static final String MADELON_TEST_LABELS_FILE = "madelon/madelon_test.labels";
 	
+	public static final int NUMBER_OF_HANDWRITING_CLASSIFICATION_DECISION_TREES = 5;
+	public static final double MINIMUM_FRACTION_OF_DATA_TO_USE = 0.20;
+	
 	public static final String SVM_RUN_LOG_FILE = "SvmRunLogFile.txt";
 
 	public static List<Double> BASIC_TRADEOFF_HYPERPARAMETER = Arrays.asList(Double.valueOf(1.0));
@@ -31,6 +36,7 @@ public class SvmClient {
 	
 	private PrintWriter out;
 	private DecimalFormat decimalFormat;
+	private Random randomNumberGenerator;
 	
 	/**
 	 * Constructor
@@ -45,6 +51,7 @@ public class SvmClient {
 		}
 		
 		this.decimalFormat = new DecimalFormat("0.0000");
+		this.randomNumberGenerator = new Random(0);
 	}
 	
 	/**
@@ -56,6 +63,7 @@ public class SvmClient {
 		SvmClient svmClient = new SvmClient();
 		svmClient.runHandwritingClassification();
 		svmClient.runMadelonClassification();
+		svmClient.runHandwritingEnsembleClassification();
 		svmClient.closeRunLog();
 		
 	}
@@ -128,5 +136,102 @@ public class SvmClient {
 		svmClassifier.closeLogFile();
 		
 	}
+
+	/**
+	 * Run ensemble classification on the handwriting data set
+	 */
+	private void runHandwritingEnsembleClassification() {
+		runEnsembleClassification(HANDWRITING_CLASSIFICATION, HANDWRITING_TRAINING_DATA_FILE, HANDWRITING_TRAINING_LABELS_FILE, HANDWRITING_TEST_DATA_FILE, HANDWRITING_TEST_LABELS_FILE, true, NUMBER_OF_HANDWRITING_CLASSIFICATION_DECISION_TREES, false);
+	}
+	
+	/**
+	 * Run SVM classification based on outputs from decision trees
+	 * 
+	 * @param classificationType
+	 * @param trainingDataFile
+	 * @param trainingLabelsFile
+	 * @param testDataFile
+	 * @param testLabelsFile
+	 * @param useBasicHyperParameters
+	 * @param numberOfDecisionTrees
+	 * @param continuousFeatures
+	 */
+	private void runEnsembleClassification(String classificationType, String trainingDataFile, String trainingLabelsFile, String testDataFile, String testLabelsFile, boolean useBasicHyperParameters, int numberOfDecisionTrees, boolean continuousFeatures) {
+		
+		
+		//Get training data and labels
+		List<List<Double>> trainingData = DataFileReader.getData(trainingDataFile);
+		List<BinaryDataLabel> trainingDataLabels = DataFileReader.getLabels(trainingLabelsFile);
+
+		//Get test data and labels
+		List<List<Double>> testData = DataFileReader.getData(testDataFile);
+		List<BinaryDataLabel> testDataLabels = DataFileReader.getLabels(testLabelsFile);
+	
+		List<DataAndLabel> combinedDataAndLabels = DataAndLabel.getCombinDataAndLabels(trainingData, trainingDataLabels);
+		List<DecisionTreeId3BinaryClassifier> decisionTreeList = new ArrayList<DecisionTreeId3BinaryClassifier>(numberOfDecisionTrees);
+		List<List<BinaryDataLabel>> predictions = new ArrayList<List<BinaryDataLabel>>(numberOfDecisionTrees);
+		
+		//Create decision trees, train them and make predictions
+		for (int treeCounter = 0; treeCounter < numberOfDecisionTrees; ++treeCounter) {
+			
+			decisionTreeList.add(new DecisionTreeId3BinaryClassifier(Integer.MAX_VALUE, continuousFeatures));
+			List<DataAndLabel> trainingDataCopy = new ArrayList<DataAndLabel>(combinedDataAndLabels);
+			List<DataAndLabel> trainingDataSamples = getTrainingDataSamples(trainingDataCopy);
+			decisionTreeList.get(treeCounter).train(DataAndLabel.getData(trainingDataSamples), DataAndLabel.getLabels(trainingDataSamples));
+			predictions.add(decisionTreeList.get(treeCounter).predict(testData));
+			
+		}
+		
+		List<List<Double>> transformedFeatures = new ArrayList<List<Double>>();
+		List<BinaryDataLabel> firstTransformedFeature = predictions.get(0);
+		
+		//Create transformed feature vectors
+		int transformedFeatureVectorNumber = 0;
+		for (BinaryDataLabel binaryDataLabel : firstTransformedFeature) {
+		
+			List<Double> transformedFeatureVector = new ArrayList<Double>();
+			transformedFeatureVector.add(Double.valueOf(binaryDataLabel.getValue()));
+			
+			for (int transformedFeatureVectorElementCounter = 1; transformedFeatureVectorElementCounter < predictions.size(); ++transformedFeatureVectorElementCounter) {
+			
+				transformedFeatureVector.add(Double.valueOf(predictions.get(transformedFeatureVectorElementCounter).get(transformedFeatureVectorNumber).getValue()));
+				
+			}
+			
+			transformedFeatures.add(transformedFeatureVector);
+			++transformedFeatureVectorNumber;
+		}
+		
+		//Train an SVM on the transformed features
+		SupportVectorMachine svmClassifier = new SupportVectorMachine(SupportVectorMachine.DEFAULT_NUMBER_OF_EPOCHS, SupportVectorMachine.DEFAULT_CROSS_VALIDATION_SPLITS, useBasicHyperParameters ? BASIC_LEARNING_RATE_HYPERPARAMETER : SupportVectorMachine.DEFAULT_LEARNING_RATES, useBasicHyperParameters ? BASIC_TRADEOFF_HYPERPARAMETER : SupportVectorMachine.DEFAULT_TRADEOFF_VALUES, new IdentityKernel(), false);
+		svmClassifier.fit(transformedFeatures, testDataLabels);
+		
+	}
+	
+	/**
+	 * @param combinedDataAndLabels
+	 * @return training data samples
+	 */
+	private List<DataAndLabel> getTrainingDataSamples(List<DataAndLabel> combinedDataAndLabels) {
+		
+		int minimumNumberOfTrainingRecordsToUse = (int) (MINIMUM_FRACTION_OF_DATA_TO_USE * combinedDataAndLabels.size());
+		int numberOfTrainingDataSamplesToDraw = minimumNumberOfTrainingRecordsToUse + this.randomNumberGenerator.nextInt(combinedDataAndLabels.size() - minimumNumberOfTrainingRecordsToUse);
+		
+		List<DataAndLabel> trainingDataSamples = new ArrayList<DataAndLabel>();
+		
+		//Sample training data
+		int recordCounter = 0, dataIndex = 0;
+		while (recordCounter < numberOfTrainingDataSamplesToDraw) {
+			
+			dataIndex = this.randomNumberGenerator.nextInt(combinedDataAndLabels.size());
+			trainingDataSamples.add(combinedDataAndLabels.get(dataIndex));
+			combinedDataAndLabels.remove(dataIndex);
+			++recordCounter;
+		}
+		
+		return trainingDataSamples;
+		
+	}
+	
 
 }

@@ -27,6 +27,7 @@ public class SvmClient {
 	public static final String MADELON_TEST_LABELS_FILE = "madelon/madelon_test.labels";
 	
 	public static final int NUMBER_OF_HANDWRITING_CLASSIFICATION_DECISION_TREES = 5;
+	public static final List<Integer> NUMBER_OF_MADELON_CLASSIFICATION_DECISION_TREES = Arrays.asList(10, 30, 100);
 	public static final double MINIMUM_FRACTION_OF_DATA_TO_USE = 0.20;
 	
 	public static final String SVM_RUN_LOG_FILE = "SvmRunLogFile.txt";
@@ -64,6 +65,7 @@ public class SvmClient {
 		svmClient.runHandwritingClassification();
 		svmClient.runMadelonClassification();
 		svmClient.runHandwritingEnsembleClassification();
+		svmClient.runMadelonEnsembleClassification();
 		svmClient.closeRunLog();
 		
 	}
@@ -117,10 +119,11 @@ public class SvmClient {
 		//Compute accuracy measures on test data
 		ClassifierMetrics classifierMetrics = new ClassifierMetrics(testDataLabels, testDataPredictions);
 				
-		this.out.println("\n" + classificationType + " Accuracy on test set: " + this.decimalFormat.format(classifierMetrics.getAccuracy()));
-		this.out.println(classificationType + " Precision on test set: " + this.decimalFormat.format(classifierMetrics.getPrecision()));
-		this.out.println(classificationType + " Recall on test set: " + this.decimalFormat.format(classifierMetrics.getRecall()));
-		this.out.println(classificationType + " F1 Score on test set: " + this.decimalFormat.format(classifierMetrics.getF1Score()));
+		this.out.println("\n" + classificationType + " using SVM");
+		this.out.println("Accuracy on test set: " + this.decimalFormat.format(classifierMetrics.getAccuracy()));
+		this.out.println("Precision on test set: " + this.decimalFormat.format(classifierMetrics.getPrecision()));
+		this.out.println("Recall on test set: " + this.decimalFormat.format(classifierMetrics.getRecall()));
+		this.out.println("F1 Score on test set: " + this.decimalFormat.format(classifierMetrics.getF1Score()));
 		
 		//Get predictions for training data
 		List<BinaryDataLabel> trainingDataPredictions = svmClassifier.getPredictions(trainingData);
@@ -128,10 +131,11 @@ public class SvmClient {
 		//Compute accuracy measures on test data
 		classifierMetrics = new ClassifierMetrics(trainingDataLabels, trainingDataPredictions);
 				
-		this.out.println("\n" + classificationType + " Accuracy on training set: " + this.decimalFormat.format(classifierMetrics.getAccuracy()));
-		this.out.println(classificationType + " Precision on training set: " + this.decimalFormat.format(classifierMetrics.getPrecision()));
-		this.out.println(classificationType + " Recall on training set: " + this.decimalFormat.format(classifierMetrics.getRecall()));
-		this.out.println(classificationType + " F1 Score on training set: " + this.decimalFormat.format(classifierMetrics.getF1Score()));
+		this.out.println("\n" + classificationType + " using SVM");
+		this.out.println("Accuracy on training set: " + this.decimalFormat.format(classifierMetrics.getAccuracy()));
+		this.out.println("Precision on training set: " + this.decimalFormat.format(classifierMetrics.getPrecision()));
+		this.out.println("Recall on training set: " + this.decimalFormat.format(classifierMetrics.getRecall()));
+		this.out.println("F1 Score on training set: " + this.decimalFormat.format(classifierMetrics.getF1Score()));
 		
 		svmClassifier.closeLogFile();
 		
@@ -142,6 +146,18 @@ public class SvmClient {
 	 */
 	private void runHandwritingEnsembleClassification() {
 		runEnsembleClassification(HANDWRITING_CLASSIFICATION, HANDWRITING_TRAINING_DATA_FILE, HANDWRITING_TRAINING_LABELS_FILE, HANDWRITING_TEST_DATA_FILE, HANDWRITING_TEST_LABELS_FILE, true, NUMBER_OF_HANDWRITING_CLASSIFICATION_DECISION_TREES, false);
+	}
+
+	/**
+	 * Run ensemble classification on the madelon data set
+	 */
+	private void runMadelonEnsembleClassification() {
+		
+		for (Integer numberOfDecisionTrees : NUMBER_OF_MADELON_CLASSIFICATION_DECISION_TREES) {
+		
+			runEnsembleClassification(MADELON_CLASSIFICATION, MADELON_TRAINING_DATA_FILE, MADELON_TRAINING_LABELS_FILE, MADELON_TEST_DATA_FILE, MADELON_TEST_LABELS_FILE, false, numberOfDecisionTrees, true);
+
+		}
 	}
 	
 	/**
@@ -178,14 +194,14 @@ public class SvmClient {
 			List<DataAndLabel> trainingDataCopy = new ArrayList<DataAndLabel>(combinedDataAndLabels);
 			List<DataAndLabel> trainingDataSamples = getTrainingDataSamples(trainingDataCopy);
 			decisionTreeList.get(treeCounter).train(DataAndLabel.getData(trainingDataSamples), DataAndLabel.getLabels(trainingDataSamples));
-			predictions.add(decisionTreeList.get(treeCounter).predict(testData));
+			predictions.add(decisionTreeList.get(treeCounter).predict(trainingData));
 			
 		}
 		
 		List<List<Double>> transformedFeatures = new ArrayList<List<Double>>();
 		List<BinaryDataLabel> firstTransformedFeature = predictions.get(0);
 		
-		//Create transformed feature vectors
+		//Create transformed feature vectors that are obtained from the forest of the decision trees
 		int transformedFeatureVectorNumber = 0;
 		for (BinaryDataLabel binaryDataLabel : firstTransformedFeature) {
 		
@@ -204,7 +220,44 @@ public class SvmClient {
 		
 		//Train an SVM on the transformed features
 		SupportVectorMachine svmClassifier = new SupportVectorMachine(SupportVectorMachine.DEFAULT_NUMBER_OF_EPOCHS, SupportVectorMachine.DEFAULT_CROSS_VALIDATION_SPLITS, useBasicHyperParameters ? BASIC_LEARNING_RATE_HYPERPARAMETER : SupportVectorMachine.DEFAULT_LEARNING_RATES, useBasicHyperParameters ? BASIC_TRADEOFF_HYPERPARAMETER : SupportVectorMachine.DEFAULT_TRADEOFF_VALUES, new IdentityKernel(), false);
-		svmClassifier.fit(transformedFeatures, testDataLabels);
+		svmClassifier.fit(transformedFeatures, trainingDataLabels);
+		
+		//Use the tree forest to make predictions based on the test data
+		predictions.clear();
+		for (int treeCounter = 0; treeCounter < numberOfDecisionTrees; ++treeCounter) {
+			predictions.add(decisionTreeList.get(treeCounter).predict(testData));
+		}
+		
+		//Create transformed feature vectors that are obtained from the forest of the decision trees
+		transformedFeatureVectorNumber = 0;
+		transformedFeatures.clear();
+		firstTransformedFeature = predictions.get(0);
+		for (BinaryDataLabel binaryDataLabel : firstTransformedFeature) {
+		
+			List<Double> transformedFeatureVector = new ArrayList<Double>();
+			transformedFeatureVector.add(Double.valueOf(binaryDataLabel.getValue()));
+			
+			for (int transformedFeatureVectorElementCounter = 1; transformedFeatureVectorElementCounter < predictions.size(); ++transformedFeatureVectorElementCounter) {
+			
+				transformedFeatureVector.add(Double.valueOf(predictions.get(transformedFeatureVectorElementCounter).get(transformedFeatureVectorNumber).getValue()));
+				
+			}
+			
+			transformedFeatures.add(transformedFeatureVector);
+			++transformedFeatureVectorNumber;
+		}
+		
+		//Predict using the trained SVM Classifier
+		List<BinaryDataLabel> finalPredictions = svmClassifier.getPredictions(testData);
+		ClassifierMetrics classifierMetrics = new ClassifierMetrics(testDataLabels, finalPredictions);
+		
+		this.out.println("\n" + classificationType + " using forest of " + numberOfDecisionTrees + " trees");
+		this.out.println("Accuracy on test set: " + this.decimalFormat.format(classifierMetrics.getAccuracy()));
+		this.out.println("Precision on test set: " + this.decimalFormat.format(classifierMetrics.getPrecision()));
+		this.out.println("Recall on test set: " + this.decimalFormat.format(classifierMetrics.getRecall()));
+		this.out.println("F1 Score on test set: " + this.decimalFormat.format(classifierMetrics.getF1Score()));
+		
+		svmClassifier.closeLogFile();		
 		
 	}
 	

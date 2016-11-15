@@ -34,7 +34,7 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 	public void train(List<List<Double>> trainingData, List<BinaryDataLabel> trainingDataLabels) {
 		
 		//Training data should be present and duplicates in training data are not allowed
-		assert trainingData.size() > 0 && trainingDataLabels.size()> 0 && !isDuplicatesInTrainingData(trainingData);
+		assert trainingData.size() > 0 && trainingDataLabels.size() > 0 && !isDuplicatesInTrainingData(trainingData);
 
 		this.numberOfRandomFeaturesToChooseFrom = (int) (Math.log(trainingDataLabels.size()) / Math.log(2));
 		
@@ -64,7 +64,7 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 		
 		DecisionTreeNode decisionTreeNode = this.decisionTreeRootNode;
 		int attributeSplitOn = 0;
-		double attribute = 0;
+		double attribute = 0.0;
 		outerLoop:
 		while (decisionTreeNode instanceof DecisionTreeInternalNode) {
 			
@@ -130,7 +130,7 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 		}
 
 		double totalCount = positiveLabelCount + negativeLabelCount;
-		double positiveLabelFraction = positiveLabelCount/totalCount, negativeLabelFraction = negativeLabelCount/totalCount;
+		double positiveLabelFraction = (double) positiveLabelCount/totalCount, negativeLabelFraction = (double) negativeLabelCount/totalCount;
 		return -1 * positiveLabelFraction * logBase2(positiveLabelFraction) - negativeLabelFraction * logBase2(negativeLabelFraction);
 
 	}
@@ -191,20 +191,20 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 		}
 		
 		//Find the point where splitting will result in maximum entropy gain
-		double maximumEntropyGain = Double.MIN_VALUE, splittingPointForMaximumEntropyGain = 0.0, currentInformationGain = 0.0;
+		double maximumInformationGain = Double.MIN_VALUE, splittingPointForMaximumEntropyGain = 0.0, currentInformationGain = 0.0;
 		for (Double splittingPoint : potentialAttributesToSplitOn) {
 		
 			currentInformationGain = getCollectionEntropy(trainingDataLabels) - getEntropyOnSplit(combinedDataAndLabels, splittingPoint, featureToPartitionOn);
-			if (currentInformationGain > maximumEntropyGain) {
+			if (currentInformationGain > maximumInformationGain) {
 				
-				maximumEntropyGain = currentInformationGain;
+				maximumInformationGain = currentInformationGain;
 				splittingPointForMaximumEntropyGain = splittingPoint;
 				
 			}
 
 		}
 		
-		return this.new InformationGainAndFeatureValue(maximumEntropyGain, splittingPointForMaximumEntropyGain);
+		return this.new InformationGainAndFeatureValue(maximumInformationGain, splittingPointForMaximumEntropyGain);
 
 	}
 	
@@ -235,7 +235,7 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 	 */
 	private InformationGainAndFeatureValue getInformationGainForBinaryFeatures(List<List<Double>> trainingData, List<BinaryDataLabel> trainingDataLabels, int featureToPartitionOn) {
 		
-		return this.new InformationGainAndFeatureValue(getCollectionEntropy(trainingDataLabels) - getEntropyOnSplit(DataAndLabel.getCombinDataAndLabels(trainingData, trainingDataLabels), 0.0, featureToPartitionOn), 0.0);
+		return this.new InformationGainAndFeatureValue(getCollectionEntropy(trainingDataLabels) - getEntropyOnSplit(DataAndLabel.getCombinDataAndLabels(trainingData, trainingDataLabels), 1.0, featureToPartitionOn), 1.0);
 		
 	}
 	
@@ -318,7 +318,7 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 		}
 		
 		//Choose best attribute to split on from a subset of all the attributes left
-		int numberOfAttributesToUse = Math.min(attributesVector.size(), this.randomNumberGenerator.nextInt(this.numberOfRandomFeaturesToChooseFrom) + 1);
+		int numberOfAttributesToUse = Math.min(attributesVector.size(), this.numberOfRandomFeaturesToChooseFrom);
 		Set<Integer> attributesSubset = getAttributesSubset(attributesVector, numberOfAttributesToUse);
 		
 		BestAttributeAndFeatureValue bestAttributeAndFeatureValue = getBestClassifyingAttribute(examples, labels, attributesSubset);

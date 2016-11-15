@@ -16,9 +16,9 @@ public class DataAndLabelComparator implements Comparator<DataAndLabel> {
 	@Override
 	public int compare(DataAndLabel dataAndLabel1, DataAndLabel dataAndLabel2) {
 		
-		if (dataAndLabel1.getData().get(this.featureNumberToSortOn) < dataAndLabel2.getData().get(this.featureNumberToSortOn)) {
+		if (dataAndLabel1.getData().get(this.featureNumberToSortOn).doubleValue() < dataAndLabel2.getData().get(this.featureNumberToSortOn).doubleValue()) {
 			return LESS_THAN;
-		} else if (dataAndLabel1.getData().get(this.featureNumberToSortOn) > dataAndLabel2.getData().get(this.featureNumberToSortOn)) {
+		} else if (dataAndLabel1.getData().get(this.featureNumberToSortOn).doubleValue() > dataAndLabel2.getData().get(this.featureNumberToSortOn).doubleValue()) {
 			return GREATER_THAN;
 		} else {
 			return EQUAL_TO;

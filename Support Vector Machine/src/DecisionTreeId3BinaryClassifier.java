@@ -34,11 +34,11 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 	public void train(List<List<Double>> trainingData, List<BinaryDataLabel> trainingDataLabels) {
 		
 		//Training data should be present and duplicates in training data are not allowed
-		assert trainingData.size() > 0 && trainingDataLabels.size() > 0 && !isDuplicatesInTrainingData(trainingData);
+		assert trainingData.size() > 0 && trainingDataLabels.size() > 0;
 
 		this.numberOfRandomFeaturesToChooseFrom = (int) (Math.log(trainingDataLabels.size()) / Math.log(2));
 		
-		this.decisionTreeRootNode = buildDecisionTree(trainingData, trainingDataLabels, getAttributesVector(trainingData.get(0).size()), 0.0, this.maximumTreeDepth);
+		this.decisionTreeRootNode = buildDecisionTree(false, trainingData, trainingDataLabels, getAttributesVector(trainingData.get(0).size()), 0.0, this.maximumTreeDepth);
 
 	}
 
@@ -64,23 +64,42 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 		
 		DecisionTreeNode decisionTreeNode = this.decisionTreeRootNode;
 		int attributeSplitOn = 0;
-		double attribute = 0.0;
+		double attributeValueInTestData = 0.0;
 		outerLoop:
 		while (decisionTreeNode instanceof DecisionTreeInternalNode) {
 			
 			attributeSplitOn = ((DecisionTreeInternalNode) decisionTreeNode).getAttributeSplitOn();
-			attribute = testDataRecord.get(attributeSplitOn);
+			attributeValueInTestData = testDataRecord.get(attributeSplitOn);
 			
 			for (DecisionTreeNode decisionTreeChildNode : ((DecisionTreeInternalNode) decisionTreeNode).getChildNodes()) {
 				if (decisionTreeChildNode instanceof DecisionTreeInternalNode) {
-					if (decisionTreeChildNode.getPreviousAttributeValue() == attribute) {
-						decisionTreeNode = decisionTreeChildNode;
-						break;
+					if (decisionTreeChildNode.isLessThanPreviousThreshold()) {
+						if (attributeValueInTestData < decisionTreeNode.getPreviousThresholdValue()) {
+							decisionTreeNode = decisionTreeChildNode;
+							break;
+						}
+					} else {
+						if (attributeValueInTestData >= decisionTreeNode.getPreviousThresholdValue()) {
+							decisionTreeNode = decisionTreeChildNode;
+							break;
+						}
 					}
 				} else {
-					if (decisionTreeChildNode.getPreviousAttributeValue() == attribute) {
+					if (((DecisionTreeLeafNode) decisionTreeChildNode).isIgnoreThreshold()) {
 						decisionTreeNode = decisionTreeChildNode;
 						break outerLoop;
+					} else {
+						if (decisionTreeChildNode.isLessThanPreviousThreshold()) {
+							if (attributeValueInTestData < decisionTreeNode.getPreviousThresholdValue()) {
+								decisionTreeNode = decisionTreeChildNode;
+								break outerLoop;
+							}
+						} else {
+							if (attributeValueInTestData >= decisionTreeNode.getPreviousThresholdValue()) {
+								decisionTreeNode = decisionTreeChildNode;
+								break outerLoop;
+							}
+						}
 					}
 				}
 			}
@@ -89,21 +108,6 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 		}
 		
 		return ((DecisionTreeLeafNode) decisionTreeNode).getLabel();
-		
-	}
-	
-	/**
-	 * @param trainingData
-	 * @return true of training data has duplicate rows
-	 */
-	private boolean isDuplicatesInTrainingData(List<List<Double>> trainingData) {
-		
-		Set<List<Double>> trainingDataSet = new HashSet<List<Double>>(trainingData);
-		if (trainingDataSet.size() < trainingData.size()) {
-			return true;
-		} else {
-			return false;
-		}
 		
 	}
 	
@@ -280,6 +284,10 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 	 */
 	private double getWeightedSubsetEntropy(int positiveLabelCount, int negativeLabelCount) {
 		
+		if (positiveLabelCount + negativeLabelCount == 0) {
+			return 0.0;
+		}
+		
 		double firstLabelFraction = (double) positiveLabelCount / (positiveLabelCount + negativeLabelCount);
 		double secondLabelFraction = (double) negativeLabelCount / (positiveLabelCount + negativeLabelCount);
 		
@@ -294,7 +302,7 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 	 * @param attributesVector
 	 * @return a root node for the tree (subtree for the recursive case)
 	 */
-	private DecisionTreeNode buildDecisionTree(List<List<Double>> examples, List<BinaryDataLabel> labels, Set<Integer> attributesVector, double previousAttributeValue, int currentDepth) {
+	private DecisionTreeNode buildDecisionTree(boolean lessThanPreviousSplitValue, List<List<Double>> examples, List<BinaryDataLabel> labels, Set<Integer> attributesVector, double previousAttributeValue, int currentDepth) {
 		
 		//Keep track of maximum tree depth
 		if (currentDepth > this.maximumTreeDepth) {
@@ -303,18 +311,18 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 		
 		//Check if limiting tree depth has been reached. If so return a leaf node with most common label
 		if (currentDepth == this.limitingTreeDepth) {
-			return new DecisionTreeLeafNode(previousAttributeValue, getMostCommonTargetAttribute(labels));
+			return new DecisionTreeLeafNode(false, 0.0,  true, getMostCommonTargetAttribute(labels));
 		}
 		
 		//If all examples have the same label, return a leaf node marked with the common label 
 		AllExamples allExamples = isAllExamplesTheSame(labels);
 		if (allExamples.isAllExamplesSame()) {
-			return new DecisionTreeLeafNode(previousAttributeValue, allExamples.getAllExamplesLabel());
+			return new DecisionTreeLeafNode(false, 0.0,  true, allExamples.getAllExamplesLabel());
 		}
 		
 		//If there are no attributes left, return a leaf node with most common target label
 		if (attributesVector.size() == 0) {
-			return new DecisionTreeLeafNode(previousAttributeValue, getMostCommonTargetAttribute(labels));
+			return new DecisionTreeLeafNode(false, 0.0,  true, getMostCommonTargetAttribute(labels));
 		}
 		
 		//Choose best attribute to split on from a subset of all the attributes left
@@ -331,16 +339,16 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 			
 			List<DataAndLabel> trainingDataSubset = getTrainingDataSubset(examples, labels, bestAttributeAndFeatureValue.getBestAttribute(), bestAttributeAndFeatureValue.getFeatureValue(), lessThanSplitValue);
 			if (trainingDataSubset.size() == 0) {
-				childNodes.add(new DecisionTreeLeafNode(bestAttributeAndFeatureValue.getFeatureValue(), getMostCommonTargetAttribute(labels)));
+				childNodes.add(new DecisionTreeLeafNode(lessThanSplitValue, bestAttributeAndFeatureValue.getFeatureValue(), false, getMostCommonTargetAttribute(labels)));
 			} else {
 				Set<Integer> reducedAttributesVector = new HashSet<Integer>(attributesVector);
 				reducedAttributesVector.remove(Integer.valueOf(bestAttributeAndFeatureValue.getBestAttribute()));
-				childNodes.add(buildDecisionTree(DataAndLabel.getData(trainingDataSubset), DataAndLabel.getLabels(trainingDataSubset), reducedAttributesVector, bestAttributeAndFeatureValue.getFeatureValue(), currentDepth + 1));
+				childNodes.add(buildDecisionTree(lessThanSplitValue, DataAndLabel.getData(trainingDataSubset), DataAndLabel.getLabels(trainingDataSubset), reducedAttributesVector, bestAttributeAndFeatureValue.getFeatureValue(), currentDepth + 1));
 			}
 			
 		}
 		
-		return new DecisionTreeInternalNode(previousAttributeValue, bestAttributeAndFeatureValue.bestAttribute, childNodes);
+		return new DecisionTreeInternalNode(lessThanPreviousSplitValue, bestAttributeAndFeatureValue.getFeatureValue(), bestAttributeAndFeatureValue.getBestAttribute(), childNodes);
 		
 	}
 	
@@ -358,7 +366,7 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 		Set<Integer> attributesSubset = new HashSet<Integer>();
 		int attributeToUse = 0;
 		
-		while (attributesVector.size() < numberOfAttributesToUse) {
+		while (attributesSubset.size() < numberOfAttributesToUse) {
 			
 			attributeToUse = this.randomNumberGenerator.nextInt(attributesVector.size());
 			if (!attributesSubset.contains(Integer.valueOf(attributeToUse))) {
@@ -381,7 +389,7 @@ public class DecisionTreeId3BinaryClassifier implements Classifier {
 	private BestAttributeAndFeatureValue getBestClassifyingAttribute(List<List<Double>> examples, List<BinaryDataLabel> labels, Set<Integer> attributesVector) {
 		
 		int bestAttribute = Integer.MIN_VALUE;
-		double bestInformationGainSoFar = Double.MIN_VALUE;
+		double bestInformationGainSoFar = -1 * Double.MAX_VALUE;
 		InformationGainAndFeatureValue informationGainAndFeatureValue = null;
 		
 		for (Integer attribute : attributesVector) {

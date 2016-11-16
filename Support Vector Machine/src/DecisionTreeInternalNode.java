@@ -7,8 +7,8 @@ public class DecisionTreeInternalNode extends DecisionTreeNode {
 	private int attributeSplitOn;
 	private List<DecisionTreeNode> childNodes;
 	
-	public DecisionTreeInternalNode(double previousAttributeValue, int attributeSplitOn, List<DecisionTreeNode> childNodes) {
-		super(previousAttributeValue);
+	public DecisionTreeInternalNode(boolean lessThanPreviousThreshold, double previousThresholdValue, int attributeSplitOn, List<DecisionTreeNode> childNodes) {
+		super(lessThanPreviousThreshold, previousThresholdValue);
 		this.attributeSplitOn = attributeSplitOn;
 		this.childNodes = childNodes;
 	}

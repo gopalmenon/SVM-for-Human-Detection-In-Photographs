@@ -33,7 +33,7 @@ public class SupportVectorMachine {
 	 * Constructor using default values
 	 */
 	public SupportVectorMachine() {
-		this(DEFAULT_NUMBER_OF_EPOCHS, DEFAULT_CROSS_VALIDATION_SPLITS, DEFAULT_LEARNING_RATES, DEFAULT_TRADEOFF_VALUES, new IdentityKernel(), true);
+		this(DEFAULT_NUMBER_OF_EPOCHS, DEFAULT_CROSS_VALIDATION_SPLITS, DEFAULT_LEARNING_RATES, DEFAULT_TRADEOFF_VALUES, new IdentityKernel(), true, LOG_FILE_NAME);
 	}
 	
 	/**
@@ -44,7 +44,7 @@ public class SupportVectorMachine {
 	 * @param tradeoffValuesForTraining
 	 * @param kernel
 	 */
-	public SupportVectorMachine(int numberOfEpochsForTraining, int crossValidationSplits, List<Double> learningRatesForTraining, List<Double> tradeoffValuesForTraining, Kernel kernel, boolean runInDebug) {
+	public SupportVectorMachine(int numberOfEpochsForTraining, int crossValidationSplits, List<Double> learningRatesForTraining, List<Double> tradeoffValuesForTraining, Kernel kernel, boolean runInDebug, String logFileName) {
 		
 		this.numberOfEpochsForTraining = numberOfEpochsForTraining;
 		this.crossValidationSplits = crossValidationSplits;
@@ -55,7 +55,7 @@ public class SupportVectorMachine {
 		this.randomNumberGenerator = new Random(0);
 		this.runInDebug = runInDebug;
 		try{
-			this.out = new PrintWriter(new FileWriter(LOG_FILE_NAME));
+			this.out = new PrintWriter(new FileWriter(logFileName));
 		} catch (IOException e) {
 			System.err.println("IOException while opening file ");
 			e.printStackTrace();

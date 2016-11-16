@@ -36,7 +36,7 @@ public class ClassifierClient {
 
 		}
 		
-		SupportVectorMachine svmClassifier = new SupportVectorMachine(SupportVectorMachine.DEFAULT_NUMBER_OF_EPOCHS, SupportVectorMachine.DEFAULT_CROSS_VALIDATION_SPLITS, SupportVectorMachine.DEFAULT_LEARNING_RATES, SupportVectorMachine.DEFAULT_TRADEOFF_VALUES, new IdentityKernel(), false);
+		SupportVectorMachine svmClassifier = new SupportVectorMachine(SupportVectorMachine.DEFAULT_NUMBER_OF_EPOCHS, SupportVectorMachine.DEFAULT_CROSS_VALIDATION_SPLITS, SupportVectorMachine.DEFAULT_LEARNING_RATES, SupportVectorMachine.DEFAULT_TRADEOFF_VALUES, new IdentityKernel(), false, SupportVectorMachine.LOG_FILE_NAME);
 		svmClassifier.fit(features, labels);
 
 		List<List<Double>> testFeatures = new ArrayList<List<Double>>();
@@ -81,7 +81,7 @@ public class ClassifierClient {
 
 		}
 
-		SupportVectorMachine svmClassifier = new SupportVectorMachine(SupportVectorMachine.DEFAULT_NUMBER_OF_EPOCHS, SupportVectorMachine.DEFAULT_CROSS_VALIDATION_SPLITS, SupportVectorMachine.DEFAULT_LEARNING_RATES, SupportVectorMachine.DEFAULT_TRADEOFF_VALUES, new IdentityKernel(), false);
+		SupportVectorMachine svmClassifier = new SupportVectorMachine(SupportVectorMachine.DEFAULT_NUMBER_OF_EPOCHS, SupportVectorMachine.DEFAULT_CROSS_VALIDATION_SPLITS, SupportVectorMachine.DEFAULT_LEARNING_RATES, SupportVectorMachine.DEFAULT_TRADEOFF_VALUES, new IdentityKernel(), false, SupportVectorMachine.LOG_FILE_NAME);
 		svmClassifier.fit(features, labels);
 		
 		List<List<Double>> testFeatures = new ArrayList<List<Double>>();

@@ -1,14 +1,20 @@
 
 public abstract class DecisionTreeNode {
 	
-	private double previousAttributeValue;
+	boolean lessThanPreviousThreshold;
+	private double previousThresholdValue;
 	
-	public DecisionTreeNode(double previousAttributeValue) {
-		this.previousAttributeValue = previousAttributeValue;
+	public DecisionTreeNode(boolean lessThanPreviousThreshold, double previousThresholdValue) {
+		this.lessThanPreviousThreshold = lessThanPreviousThreshold;
+		this.previousThresholdValue = previousThresholdValue;
 	}
 
-	public double getPreviousAttributeValue() {
-		return previousAttributeValue;
+	public boolean isLessThanPreviousThreshold() {
+		return lessThanPreviousThreshold;
+	}
+
+	public double getPreviousThresholdValue() {
+		return previousThresholdValue;
 	}
 
 }

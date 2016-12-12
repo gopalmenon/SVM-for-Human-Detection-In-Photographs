@@ -118,14 +118,15 @@ public class SupportVectorMachine {
 					boolean firstTime = true;
 					for (int epochCounter = 0; epochCounter < this.numberOfEpochsForTraining; ++ epochCounter) {
 						
-						//Shuffle the training data for each subsequent epoch
+						//Book keeping
 						if (firstTime) {
 							firstTime = false;
 							this.currentLearningRate = learningRate.doubleValue();
 							this.stochasticGradientDescentCounter = 0;
-						} else {
-							shuffleTrainingData(trainingDataSubsetFeatures, trainingDataSubsetLabels);
 						}
+
+						//Shuffle the training data
+						shuffleTrainingData(trainingDataSubsetFeatures, trainingDataSubsetLabels);
 						
 						//Find the optimum weights by running stochastic gradient descent
 						weightVector = runStochasticGradientDescent(trainingDataSubsetFeatures, trainingDataSubsetLabels, tradeoffValue.doubleValue(), weightVector);

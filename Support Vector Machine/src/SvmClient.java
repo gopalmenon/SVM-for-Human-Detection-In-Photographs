@@ -1,3 +1,4 @@
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -5,7 +6,9 @@ import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 
@@ -13,31 +16,18 @@ import java.util.Random;
  * Run the SVM Classifier and report accuracy measures
  */
 public class SvmClient {
-
-	public static final String NON_EMSEMBLE_CLASSIFICATION = "NonEnsemble";
-	public static final String EMSEMBLE_CLASSIFICATION = "Ensemble";
 	
-	public static final String HANDWRITING_CLASSIFICATION = "Handwriting";
-	public static final String MADELON_CLASSIFICATION = "Madelon";
+	public static final double TRAINING_DATA_FRACTION = 0.8;
 	
-	public static final String HANDWRITING_TRAINING_DATA_FILE = "handwriting/train.data";
-	public static final String HANDWRITING_TRAINING_LABELS_FILE = "handwriting/train.labels";
-	public static final String HANDWRITING_TEST_DATA_FILE = "handwriting/test.data";
-	public static final String HANDWRITING_TEST_LABELS_FILE = "handwriting/test.labels";
-
-	public static final String MADELON_TRAINING_DATA_FILE = "madelon/madelon_train.data";
-	public static final String MADELON_TRAINING_LABELS_FILE = "madelon/madelon_train.labels";
-	public static final String MADELON_TEST_DATA_FILE = "madelon/madelon_test.data";
-	public static final String MADELON_TEST_LABELS_FILE = "madelon/madelon_test.labels";
-	
-	public static final int NUMBER_OF_HANDWRITING_CLASSIFICATION_DECISION_TREES = 5;
-	public static final List<Integer> NUMBER_OF_MADELON_CLASSIFICATION_DECISION_TREES = Arrays.asList(10, 30, 100);
-	public static final double FRACTION_OF_DATA_TO_USE = 0.80;
+	public static final String HUMANS_PRESENT_DATA_FILE = "Humans/present";
+	public static final String HUMANS_ABSENT_DATA_FILE = "Humans/absent";
 	
 	public static final String SVM_RUN_LOG_FILE = "SvmRunLogFile.txt";
-
-	public static List<Double> BASIC_TRADEOFF_HYPERPARAMETER = Arrays.asList(Double.valueOf(1.0));
-	public static List<Double> BASIC_LEARNING_RATE_HYPERPARAMETER = Arrays.asList(Double.valueOf(0.01));
+	
+	private List<List<Double>> trainingData;
+	private List<BinaryDataLabel> trainingDataLabels;
+	private List<List<Double>> testingData;
+	private List<BinaryDataLabel> testingDataLabels;
 	
 	private PrintWriter out;
 	private DecimalFormat decimalFormat;
@@ -66,11 +56,45 @@ public class SvmClient {
 	public static void main(String[] args) {
 		
 		SvmClient svmClient = new SvmClient();
-		svmClient.runHandwritingClassification();
-		svmClient.runMadelonClassification();
-		svmClient.runHandwritingEnsembleClassification();
-		svmClient.runMadelonEnsembleClassification();
+		svmClient.retrieveDataFromImageFiles();
 		svmClient.closeRunLog();
+		
+	}
+	
+	/**
+	 * Retrieve image data from image files
+	 */
+	@SuppressWarnings("unchecked")
+	private void retrieveDataFromImageFiles() {
+		
+		//Get image data and labels
+		List<List<Double>> humansPresentData = DataFileReader.getGrayScaleImageArrays(new File(HUMANS_PRESENT_DATA_FILE));
+		List<BinaryDataLabel> humansPresentDataLabels = DataFileReader.getLabelsList(humansPresentData.size(), true);
+		List<List<Double>> humansAbsentData = DataFileReader.getGrayScaleImageArrays(new File(HUMANS_ABSENT_DATA_FILE));
+		List<BinaryDataLabel> humansAbsentDataLabels = DataFileReader.getLabelsList(humansAbsentData.size(), true);
+		
+		//Split images and labels data into training and test sets
+		Map<String, Object> splitHumansPresentDataAndLabels = DataFileReader.partitionDataAndLabels(humansPresentData, humansPresentDataLabels, TRAINING_DATA_FRACTION);
+		Map<String, Object> splitHumansAbsentDataAndLabels = DataFileReader.partitionDataAndLabels(humansAbsentData, humansAbsentDataLabels, TRAINING_DATA_FRACTION);
+		
+		//Save training and test data
+		int numberOfTrainingRecords = (int) (TRAINING_DATA_FRACTION * (humansPresentData.size() + humansAbsentData.size())), numberOfTestingRecords = humansPresentData.size() + humansAbsentData.size() - numberOfTrainingRecords;
+		
+		this.trainingData = new ArrayList<List<Double>>(numberOfTrainingRecords);
+		this.trainingData.addAll((Collection<? extends List<Double>>) splitHumansPresentDataAndLabels.get(DataFileReader.TRAINING_DATA));
+		this.trainingData.addAll((Collection<? extends List<Double>>) splitHumansAbsentDataAndLabels.get(DataFileReader.TRAINING_DATA));
+		
+		this.trainingDataLabels = new ArrayList<BinaryDataLabel>(numberOfTrainingRecords);
+		this.trainingDataLabels.addAll((Collection<? extends BinaryDataLabel>) splitHumansPresentDataAndLabels.get(DataFileReader.TRAINING_DATA_LABELS));
+		this.trainingDataLabels.addAll((Collection<? extends BinaryDataLabel>) splitHumansAbsentDataAndLabels.get(DataFileReader.TRAINING_DATA_LABELS));
+		
+		this.testingData = new ArrayList<List<Double>>(numberOfTestingRecords);
+		this.testingData.addAll((Collection<? extends List<Double>>) splitHumansPresentDataAndLabels.get(DataFileReader.TESTING_DATA));
+		this.testingData.addAll((Collection<? extends List<Double>>) splitHumansAbsentDataAndLabels.get(DataFileReader.TESTING_DATA));
+		
+		this.testingDataLabels = new ArrayList<BinaryDataLabel>(numberOfTestingRecords);
+		this.testingDataLabels.addAll((Collection<? extends BinaryDataLabel>) splitHumansPresentDataAndLabels.get(DataFileReader.TESTING_DATA_LABELS));
+		this.testingDataLabels.addAll((Collection<? extends BinaryDataLabel>) splitHumansAbsentDataAndLabels.get(DataFileReader.TESTING_DATA_LABELS));
 		
 	}
 	
@@ -80,254 +104,6 @@ public class SvmClient {
 	private void closeRunLog() {
 		this.out.close();
 	}
-	
-	/**
-	 * Call handwriting classification to report accuracy measures
-	 */
-	private void runHandwritingClassification() {
-		runClassification(HANDWRITING_CLASSIFICATION, HANDWRITING_TRAINING_DATA_FILE, HANDWRITING_TRAINING_LABELS_FILE, HANDWRITING_TEST_DATA_FILE, HANDWRITING_TEST_LABELS_FILE, true);
-	}
-	
-	/**
-	 * Call madelon classification to report accuracy measures
-	 */
-	private void runMadelonClassification() {
-		runClassification(MADELON_CLASSIFICATION, MADELON_TRAINING_DATA_FILE, MADELON_TRAINING_LABELS_FILE, MADELON_TEST_DATA_FILE, MADELON_TEST_LABELS_FILE, false);
-	}
-	
-	/**
-	 * Run classification and report accuracy measures
-	 * @param classificationType
-	 * @param trainingDataFile
-	 * @param trainingLabelsFile
-	 * @param testDataFile
-	 * @param testLabelsFile
-	 */
-	private void runClassification(String classificationType, String trainingDataFile, String trainingLabelsFile, String testDataFile, String testLabelsFile, boolean useBasicHyperParameters) {
-			
-		System.out.println(new Timestamp(System.currentTimeMillis()) + ": Starting " + classificationType + " SVM Classification.");
-		
-		//Get training data and labels
-		List<List<Double>> trainingData = DataFileReader.getData(trainingDataFile);
-		List<BinaryDataLabel> trainingDataLabels = DataFileReader.getLabels(trainingLabelsFile);
-		
-		//Train the classifier
-		SupportVectorMachine svmClassifier = new SupportVectorMachine(SupportVectorMachine.DEFAULT_NUMBER_OF_EPOCHS, SupportVectorMachine.DEFAULT_CROSS_VALIDATION_SPLITS, useBasicHyperParameters ? BASIC_LEARNING_RATE_HYPERPARAMETER : SupportVectorMachine.DEFAULT_LEARNING_RATES, useBasicHyperParameters ? BASIC_TRADEOFF_HYPERPARAMETER : SupportVectorMachine.DEFAULT_TRADEOFF_VALUES, new IdentityKernel(), true, NON_EMSEMBLE_CLASSIFICATION + classificationType + SupportVectorMachine.LOG_FILE_NAME);
-		svmClassifier.fit(trainingData, trainingDataLabels);
 
-		//Get test data and labels
-		List<List<Double>> testData = DataFileReader.getData(testDataFile);
-		List<BinaryDataLabel> testDataLabels = DataFileReader.getLabels(testLabelsFile);
-		
-		//Get predictions for test data
-		List<BinaryDataLabel> testDataPredictions = svmClassifier.getPredictions(testData);
-		
-		//Compute accuracy measures on test data
-		ClassifierMetrics classifierMetrics = new ClassifierMetrics(testDataLabels, testDataPredictions);
-				
-		this.out.println("\n" + classificationType + " using SVM");
-		this.out.println("Accuracy on test set: " + this.decimalFormat.format(classifierMetrics.getAccuracy()));
-		this.out.println("Precision on test set: " + this.decimalFormat.format(classifierMetrics.getPrecision()));
-		this.out.println("Recall on test set: " + this.decimalFormat.format(classifierMetrics.getRecall()));
-		this.out.println("F1 Score on test set: " + this.decimalFormat.format(classifierMetrics.getF1Score()));
-		
-		//Get predictions for training data
-		List<BinaryDataLabel> trainingDataPredictions = svmClassifier.getPredictions(trainingData);
-		
-		//Compute accuracy measures on test data
-		classifierMetrics = new ClassifierMetrics(trainingDataLabels, trainingDataPredictions);
-				
-		this.out.println("\n" + classificationType + " using SVM");
-		this.out.println("Accuracy on training set: " + this.decimalFormat.format(classifierMetrics.getAccuracy()));
-		this.out.println("Precision on training set: " + this.decimalFormat.format(classifierMetrics.getPrecision()));
-		this.out.println("Recall on training set: " + this.decimalFormat.format(classifierMetrics.getRecall()));
-		this.out.println("F1 Score on training set: " + this.decimalFormat.format(classifierMetrics.getF1Score()));
-		
-		svmClassifier.closeLogFile();
-		
-	}
-
-	/**
-	 * Run ensemble classification on the handwriting data set
-	 */
-	private void runHandwritingEnsembleClassification() {
-		runEnsembleClassification(HANDWRITING_CLASSIFICATION, HANDWRITING_TRAINING_DATA_FILE, HANDWRITING_TRAINING_LABELS_FILE, HANDWRITING_TEST_DATA_FILE, HANDWRITING_TEST_LABELS_FILE, false, NUMBER_OF_HANDWRITING_CLASSIFICATION_DECISION_TREES, false);
-	}
-
-	/**
-	 * Run ensemble classification on the madelon data set
-	 */
-	private void runMadelonEnsembleClassification() {
-		
-		for (Integer numberOfDecisionTrees : NUMBER_OF_MADELON_CLASSIFICATION_DECISION_TREES) {
-		
-			runEnsembleClassification(MADELON_CLASSIFICATION, MADELON_TRAINING_DATA_FILE, MADELON_TRAINING_LABELS_FILE, MADELON_TEST_DATA_FILE, MADELON_TEST_LABELS_FILE, false, numberOfDecisionTrees, true);
-
-		}
-	}
-	
-	/**
-	 * Run SVM classification based on outputs from decision trees
-	 * 
-	 * @param classificationType
-	 * @param trainingDataFile
-	 * @param trainingLabelsFile
-	 * @param testDataFile
-	 * @param testLabelsFile
-	 * @param useBasicHyperParameters
-	 * @param numberOfDecisionTrees
-	 * @param continuousFeatures
-	 */
-	private void runEnsembleClassification(String classificationType, String trainingDataFile, String trainingLabelsFile, String testDataFile, String testLabelsFile, boolean useBasicHyperParameters, int numberOfDecisionTrees, boolean continuousFeatures) {
-		
-		
-		System.out.println(new Timestamp(System.currentTimeMillis()) + ": Starting " + classificationType + " Ensemble SVM Classification using " + numberOfDecisionTrees + " trees.");
-		
-		//Get training data and labels
-		List<List<Double>> trainingData = DataFileReader.getData(trainingDataFile);
-		List<BinaryDataLabel> trainingDataLabels = DataFileReader.getLabels(trainingLabelsFile);
-
-		//Get test data and labels
-		List<List<Double>> testData = DataFileReader.getData(testDataFile);
-		List<BinaryDataLabel> testDataLabels = DataFileReader.getLabels(testLabelsFile);
-	
-		List<DataAndLabel> combinedDataAndLabels = DataAndLabel.getCombinDataAndLabels(trainingData, trainingDataLabels);
-		List<DecisionTreeId3BinaryClassifier> decisionTreeList = new ArrayList<DecisionTreeId3BinaryClassifier>(numberOfDecisionTrees);
-		List<List<BinaryDataLabel>> predictions = new ArrayList<List<BinaryDataLabel>>(numberOfDecisionTrees);
-		
-		//Create decision trees, train them and make predictions
-		for (int treeCounter = 0; treeCounter < numberOfDecisionTrees; ++treeCounter) {
-			
-			decisionTreeList.add(new DecisionTreeId3BinaryClassifier(Integer.MAX_VALUE, continuousFeatures));
-			List<DataAndLabel> trainingDataCopy = new ArrayList<DataAndLabel>(combinedDataAndLabels);
-			List<DataAndLabel> trainingDataSamples = getTrainingDataSamples(trainingDataCopy);
-			decisionTreeList.get(treeCounter).train(DataAndLabel.getData(trainingDataSamples), DataAndLabel.getLabels(trainingDataSamples));
-			predictions.add(decisionTreeList.get(treeCounter).predict(trainingData));
-			
-		}
-		
-		List<List<Double>> transformedFeatures = new ArrayList<List<Double>>();
-		List<BinaryDataLabel> firstTransformedFeature = predictions.get(0);
-		
-		//Create transformed feature vectors that are obtained from the forest of the decision trees
-		int transformedFeatureVectorNumber = 0;
-		for (BinaryDataLabel binaryDataLabel : firstTransformedFeature) {
-		
-			List<Double> transformedFeatureVector = new ArrayList<Double>();
-			transformedFeatureVector.add(Double.valueOf(binaryDataLabel.getValue()));
-			
-			for (int transformedFeatureVectorElementCounter = 1; transformedFeatureVectorElementCounter < predictions.size(); ++transformedFeatureVectorElementCounter) {
-			
-				transformedFeatureVector.add(Double.valueOf(predictions.get(transformedFeatureVectorElementCounter).get(transformedFeatureVectorNumber).getValue()));
-				
-			}
-			
-			transformedFeatures.add(transformedFeatureVector);
-			++transformedFeatureVectorNumber;
-		}
-		
-		//Train an SVM on the transformed features
-		SupportVectorMachine svmClassifier = new SupportVectorMachine(SupportVectorMachine.DEFAULT_NUMBER_OF_EPOCHS, SupportVectorMachine.DEFAULT_CROSS_VALIDATION_SPLITS, useBasicHyperParameters ? BASIC_LEARNING_RATE_HYPERPARAMETER : SupportVectorMachine.DEFAULT_LEARNING_RATES, useBasicHyperParameters ? BASIC_TRADEOFF_HYPERPARAMETER : SupportVectorMachine.DEFAULT_TRADEOFF_VALUES, new IdentityKernel(), false, EMSEMBLE_CLASSIFICATION + classificationType + SupportVectorMachine.LOG_FILE_NAME);
-		svmClassifier.fit(transformedFeatures, trainingDataLabels);
-		
-		//Use the tree forest to make predictions based on the test data
-		predictions.clear();
-		for (int treeCounter = 0; treeCounter < numberOfDecisionTrees; ++treeCounter) {
-			predictions.add(decisionTreeList.get(treeCounter).predict(testData));
-		}
-		
-		//Create transformed feature vectors that are obtained from the forest of the decision trees
-		//This is the test data to be used as input to the SVM
-		transformedFeatureVectorNumber = 0;
-		transformedFeatures.clear();
-		firstTransformedFeature = predictions.get(0);
-		for (BinaryDataLabel binaryDataLabel : firstTransformedFeature) {
-		
-			List<Double> transformedFeatureVector = new ArrayList<Double>();
-			transformedFeatureVector.add(Double.valueOf(binaryDataLabel.getValue()));
-			
-			for (int transformedFeatureVectorElementCounter = 1; transformedFeatureVectorElementCounter < predictions.size(); ++transformedFeatureVectorElementCounter) {
-			
-				transformedFeatureVector.add(Double.valueOf(predictions.get(transformedFeatureVectorElementCounter).get(transformedFeatureVectorNumber).getValue()));
-				
-			}
-			
-			transformedFeatures.add(transformedFeatureVector);
-			++transformedFeatureVectorNumber;
-		}
-
-		//Predict using the trained SVM Classifier
-		List<BinaryDataLabel> finalPredictions = svmClassifier.getPredictions(transformedFeatures);
-		ClassifierMetrics classifierMetrics = new ClassifierMetrics(testDataLabels, finalPredictions);
-		
-		this.out.println("\n" + classificationType + " using forest of " + numberOfDecisionTrees + " trees");
-		this.out.println("Accuracy on test set: " + this.decimalFormat.format(classifierMetrics.getAccuracy()));
-		this.out.println("Precision on test set: " + this.decimalFormat.format(classifierMetrics.getPrecision()));
-		this.out.println("Recall on test set: " + this.decimalFormat.format(classifierMetrics.getRecall()));
-		this.out.println("F1 Score on test set: " + this.decimalFormat.format(classifierMetrics.getF1Score()));	
-		
-		//Use the tree forest to make predictions based on the training data
-		predictions.clear();
-		for (int treeCounter = 0; treeCounter < numberOfDecisionTrees; ++treeCounter) {
-			predictions.add(decisionTreeList.get(treeCounter).predict(trainingData));
-		}
-		
-		//Create transformed feature vectors that are obtained from the forest of the decision trees
-		//This is the test data to be used as input to the SVM
-		transformedFeatureVectorNumber = 0;
-		transformedFeatures.clear();
-		firstTransformedFeature = predictions.get(0);
-		for (BinaryDataLabel binaryDataLabel : firstTransformedFeature) {
-		
-			List<Double> transformedFeatureVector = new ArrayList<Double>();
-			transformedFeatureVector.add(Double.valueOf(binaryDataLabel.getValue()));
-			
-			for (int transformedFeatureVectorElementCounter = 1; transformedFeatureVectorElementCounter < predictions.size(); ++transformedFeatureVectorElementCounter) {
-			
-				transformedFeatureVector.add(Double.valueOf(predictions.get(transformedFeatureVectorElementCounter).get(transformedFeatureVectorNumber).getValue()));
-				
-			}
-			
-			transformedFeatures.add(transformedFeatureVector);
-			++transformedFeatureVectorNumber;
-		}
-
-		//Predict using the trained SVM Classifier
-		finalPredictions = svmClassifier.getPredictions(transformedFeatures);
-		classifierMetrics = new ClassifierMetrics(trainingDataLabels, finalPredictions);
-		
-		this.out.println("\n" + classificationType + " using forest of " + numberOfDecisionTrees + " trees");
-		this.out.println("Accuracy on training set: " + this.decimalFormat.format(classifierMetrics.getAccuracy()));
-		this.out.println("Precision on training set: " + this.decimalFormat.format(classifierMetrics.getPrecision()));
-		this.out.println("Recall on training set: " + this.decimalFormat.format(classifierMetrics.getRecall()));
-		this.out.println("F1 Score on training set: " + this.decimalFormat.format(classifierMetrics.getF1Score()));
-	
-		svmClassifier.closeLogFile();		
-		
-	}
-	
-	/**
-	 * @param combinedDataAndLabels
-	 * @return training data samples
-	 */
-	private List<DataAndLabel> getTrainingDataSamples(List<DataAndLabel> combinedDataAndLabels) {
-		
-		int numberOfTrainingDataSamplesToDraw = (int) (FRACTION_OF_DATA_TO_USE * combinedDataAndLabels.size());
-		
-		List<DataAndLabel> trainingDataSamples = new ArrayList<DataAndLabel>();
-		
-		//Sample training data with replacement
-		int recordCounter = 0, dataIndex = 0;
-		while (recordCounter < numberOfTrainingDataSamplesToDraw) {
-			
-			dataIndex = this.randomNumberGenerator.nextInt(combinedDataAndLabels.size());
-			trainingDataSamples.add(combinedDataAndLabels.get(dataIndex));
-			++recordCounter;
-
-		}
-		
-		return trainingDataSamples;
-		
-	}
 	
 }

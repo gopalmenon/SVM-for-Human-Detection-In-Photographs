@@ -5,12 +5,9 @@ import java.io.PrintWriter;
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
-
 
 /**
  * Run the SVM Classifier and report accuracy measures
@@ -31,7 +28,6 @@ public class SvmClient {
 	
 	private PrintWriter out;
 	private DecimalFormat decimalFormat;
-	private Random randomNumberGenerator;
 	
 	/**
 	 * Constructor
@@ -46,7 +42,7 @@ public class SvmClient {
 		}
 		
 		this.decimalFormat = new DecimalFormat("0.0000");
-		this.randomNumberGenerator = new Random(0);
+
 	}
 	
 	/**
@@ -57,6 +53,7 @@ public class SvmClient {
 		
 		SvmClient svmClient = new SvmClient();
 		svmClient.retrieveDataFromImageFiles();
+		svmClient.runClassifier();
 		svmClient.closeRunLog();
 		
 	}
@@ -66,6 +63,8 @@ public class SvmClient {
 	 */
 	@SuppressWarnings("unchecked")
 	private void retrieveDataFromImageFiles() {
+		
+		System.out.println(new Timestamp(System.currentTimeMillis()) + ": Starting data retrieval.");
 		
 		//Get image data and labels
 		List<List<Double>> humansPresentData = DataFileReader.getGrayScaleImageArrays(new File(HUMANS_PRESENT_DATA_FILE));
@@ -95,7 +94,50 @@ public class SvmClient {
 		this.testingDataLabels = new ArrayList<BinaryDataLabel>(numberOfTestingRecords);
 		this.testingDataLabels.addAll((Collection<? extends BinaryDataLabel>) splitHumansPresentDataAndLabels.get(DataFileReader.TESTING_DATA_LABELS));
 		this.testingDataLabels.addAll((Collection<? extends BinaryDataLabel>) splitHumansAbsentDataAndLabels.get(DataFileReader.TESTING_DATA_LABELS));
+				
+		System.out.println(new Timestamp(System.currentTimeMillis()) + ": Finished with data retrieval.");
 		
+	}
+	
+	/**
+	 * Run the classifier
+	 */
+	private void runClassifier() {
+		
+		
+		//Instantiate classifier
+		SupportVectorMachine classifier = new SupportVectorMachine();
+		
+		System.out.println(new Timestamp(System.currentTimeMillis()) + ": Starting training.");
+		
+		//Train the classifier
+		classifier.fit(this.testingData, this.testingDataLabels);
+		
+		System.out.println(new Timestamp(System.currentTimeMillis()) + ": Starting predictions.");
+		
+		//Run predictions
+		List<BinaryDataLabel> predictions = classifier.getPredictions(this.testingData);
+		
+		//Write the SVM logs
+		classifier.closeLogFile();
+		
+		//Print predictions
+		printPredictionAccuracyMetrics(predictions);
+
+	}
+	
+	/**
+	 * Print prediction accuracy metrics
+	 * @param predictions
+	 */
+	private void printPredictionAccuracyMetrics(List<BinaryDataLabel> predictions) {
+		
+		ClassifierMetrics classifierMetrics = new ClassifierMetrics(this.testingDataLabels, predictions);
+		this.out.println("\nAccuracy on test set: " + this.decimalFormat.format(classifierMetrics.getAccuracy()));
+		this.out.println("Precision on test set: " + this.decimalFormat.format(classifierMetrics.getPrecision()));
+		this.out.println("Recall on test set: " + this.decimalFormat.format(classifierMetrics.getRecall()));
+		this.out.println("F1 Score on test set: " + this.decimalFormat.format(classifierMetrics.getF1Score()));	
+
 	}
 	
 	/**

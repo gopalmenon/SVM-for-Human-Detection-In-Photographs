@@ -14,6 +14,7 @@ public class DataFileReader {
 	public static final String TRAINING_DATA_LABELS = "trainingDataLabels";
 	public static final String TESTING_DATA = "testingData";
 	public static final String TESTING_DATA_LABELS = "testingDataLabels";
+	public static final String EXPECTED_IMAGE_FILE_EXTENSION = ".bmp";
 
 	/**
 	 * @param folderName
@@ -25,7 +26,9 @@ public class DataFileReader {
 		List<List<Double>> grayScaleImageArrays = new ArrayList<List<Double>>(directoryListing.size());
 		
 		for (File imageFile : directoryListing) {
-			grayScaleImageArrays.add(getGrayScaleImageArray(getImageFileContents(imageFile)));
+			if (imageFile.getName().endsWith(EXPECTED_IMAGE_FILE_EXTENSION)) {
+				grayScaleImageArrays.add(getGrayScaleImageArray(getImageFileContents(imageFile)));
+			}
 		}
 
 		return grayScaleImageArrays;

@@ -73,7 +73,7 @@ public class SvmClient {
 		List<List<Double>> humansPresentData = DataFileReader.getGrayScaleImageArrays(new File(HUMANS_PRESENT_DATA_FOLDER), new File(HUMANS_PRESENT_RESIZED_DATA_FOLDER));
 		List<BinaryDataLabel> humansPresentDataLabels = DataFileReader.getLabelsList(humansPresentData.size(), true);
 		List<List<Double>> humansAbsentData = DataFileReader.getGrayScaleImageArrays(new File(HUMANS_ABSENT_DATA_FOLDER), new File(HUMANS_ABSENT_RESIZED_DATA_FOLDER));
-		List<BinaryDataLabel> humansAbsentDataLabels = DataFileReader.getLabelsList(humansAbsentData.size(), true);
+		List<BinaryDataLabel> humansAbsentDataLabels = DataFileReader.getLabelsList(humansAbsentData.size(), false);
 		
 		//Split images and labels data into training and test sets
 		Map<String, Object> splitHumansPresentDataAndLabels = DataFileReader.partitionDataAndLabels(humansPresentData, humansPresentDataLabels, TRAINING_DATA_FRACTION);
@@ -126,6 +126,8 @@ public class SvmClient {
 		
 		//Print predictions
 		printPredictionAccuracyMetrics(predictions);
+		
+		System.out.println(new Timestamp(System.currentTimeMillis()) + ": Done with predictions.");
 
 	}
 	

@@ -1,126 +1,88 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.imageio.ImageIO;
+
 public class DataFileReader {
 	
-	public static String WHITESPACE_REGEX = "\\s";
-
-
-	/**
-	 * @param filePath
-	 * @return file contents as a list of strings
-	 * @throws IOException
-	 */
-	private static List<String> getDataFileContents(String filePath) throws IOException {
+	public List<List<Integer>> getGrayScaleImageArrays(File folderName) {
 		
-		List<String> fileContents = new ArrayList<String>();
-		BufferedReader bufferedReader = null;
+		List<File> directoryListing = getDirectoryListing(folderName);
+		List<List<Integer>> grayScaleImageArrays = new ArrayList<List<Integer>>(directoryListing.size());
 		
-		try {
-			bufferedReader = new BufferedReader(new FileReader(filePath));
-			String fileLine = bufferedReader.readLine();
-			
-			while (fileLine != null) {
-				
-				if (fileLine.trim().length() > 0) {
-					fileContents.add(fileLine.trim());
-				}
-
-				fileLine = bufferedReader.readLine();
-			}
-			
-			bufferedReader.close();
-			
-		} catch (IOException e) {
-			throw e;
-		} catch (NumberFormatException e) {
-			throw e;
+		for (File imageFile : directoryListing) {
+			grayScaleImageArrays.add(getGrayScaleImageArray(getImageFileContents(imageFile)));
 		}
-		
-		return fileContents;
 
+		return grayScaleImageArrays;
+		
 	}
-
-	/**
-	 * @param filePath
-	 * @return data as a list of list of doubles
-	 */
-	public static List<List<Double>> getData(String filePath) {
+	
+	private static List<Integer> getGrayScaleImageArray(BufferedImage imageFileContents) {
 		
-		List<List<Double>> fileData = new ArrayList<List<Double>>();
-				
-		try {
-
-			//Get raw data as a list of strings
-			List<String> rawData = getDataFileContents(filePath);
+		int imageHeight = imageFileContents.getHeight(), imageWidth = imageFileContents.getWidth(), redGreenBlue = 0, red =0, green = 0, blue = 0, gray = 0;
+		List<Integer> grayScaleImageArray = new ArrayList<Integer>(imageHeight * imageWidth);
+		
+		//Get gray scale value at each pixel location
+		for (int widthCounter = 0; widthCounter < imageWidth; ++widthCounter) {
+			for (int heightCounter = 0; heightCounter < imageHeight; ++heightCounter) {
 			
-			List<Double> dataVector = null;
-			//Loop through each string in the list
-			for (String fileLine : rawData) {
-		
-				//Split each string into tokens
-				String[] dataTokens = fileLine.split(WHITESPACE_REGEX);
-				if (dataTokens.length > 0) {
-					
-					//Parse as doubles and add to data vector
-					dataVector = new ArrayList<Double>(dataTokens.length);
-					for (String token : dataTokens) {
-						dataVector.add(Double.valueOf(Double.parseDouble(token)));
-					}
-				}
-				
-				fileData.add(dataVector);
-				
+				redGreenBlue = imageFileContents.getRGB(widthCounter, heightCounter);
+				red = (redGreenBlue >> 16) & 0xFF;
+				green = (redGreenBlue >> 8) & 0xFF;
+				blue = (redGreenBlue & 0xFF);	
+				gray = (red + green + blue) / 3;
+			
+				grayScaleImageArray.add(Integer.valueOf(gray));
 			}
-		
-		} catch (IOException e) {
-			e.printStackTrace();
-			System.exit(0);
-		} catch (NumberFormatException e) {
-			e.printStackTrace();
-			System.exit(0);
 		}
-
-		return fileData;
+		
+		return grayScaleImageArray;
+	}
+	
+	/**
+	 * @param folderName
+	 * @return list of files in directory
+	 */
+	private static List<File> getDirectoryListing(File folderName) {
+		
+		List<File> directoryListing = new ArrayList<File>();
+		
+		if (folderName.isDirectory()) {
+			File[] listing = folderName.listFiles();
+			for (File fileEntry : listing) {
+				if (fileEntry.isFile()) {
+					directoryListing.add(fileEntry);
+				}
+			}
+		}
+		
+		return directoryListing;
 		
 	}
 	
 	/**
-	 * @param filePath
-	 * @return list of data labels
+	 * @param fileName
+	 * @return contents of the image in the form of a buffered image
 	 */
-	public static List<BinaryDataLabel> getLabels(String filePath) {
+	private static BufferedImage getImageFileContents(File fileName) {
 		
-		List<BinaryDataLabel> dataLabels = new ArrayList<BinaryDataLabel>();
+		//Make sure a file is passed in
+		if (!fileName.isFile()) {
+			return null;
+		}
 		
+		BufferedImage imageFileContents = null;
 		try {
-
-			//Get raw data as a list of strings
-			List<String> labelsList = getDataFileContents(filePath);
-			
-			//Loop through each string in the list
-			for (String labelString : labelsList) {
-		
-				//Parse the label and add it to the list
-				if (Integer.parseInt(labelString.trim()) == 1) {
-					dataLabels.add(BinaryDataLabel.POSITIVE_LABEL);
-				} else {
-					dataLabels.add(BinaryDataLabel.NEGATIVE_LABEL);
-				}
-			}
-
+			imageFileContents =  ImageIO.read(fileName);
 		} catch (IOException e) {
 			e.printStackTrace();
-			System.exit(0);
-		} catch (NumberFormatException e) {
-			e.printStackTrace();
-			System.exit(0);
-		}		
+		}
 		
-		return dataLabels;
+		return imageFileContents;
 		
 	}
 	

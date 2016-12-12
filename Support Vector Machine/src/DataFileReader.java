@@ -17,8 +17,8 @@ public class DataFileReader {
 	public static final String TESTING_DATA_LABELS = "testingDataLabels";
 	public static final String EXPECTED_IMAGE_FILE_EXTENSION = "bmp";
 	
-	public static final double SCALED_WIDTH_FRACTION = 0.1;
-	public static final double SCALED_HEIGHT_FRACTION = 0.1;
+	public static final double SCALED_WIDTH_FRACTION = 0.25;
+	public static final double SCALED_HEIGHT_FRACTION = 0.25;
 
 	/**
 	 * @param folderName

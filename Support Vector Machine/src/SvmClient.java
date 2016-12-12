@@ -136,7 +136,8 @@ public class SvmClient {
 	private void printPredictionAccuracyMetrics(List<BinaryDataLabel> predictions) {
 		
 		ClassifierMetrics classifierMetrics = new ClassifierMetrics(this.testingDataLabels, predictions);
-		this.out.println("\nAccuracy on test set: " + this.decimalFormat.format(classifierMetrics.getAccuracy()));
+		this.out.println("\nNumber of pictures used in prediction: " + predictions.size());
+		this.out.println("Accuracy on test set: " + this.decimalFormat.format(classifierMetrics.getAccuracy()));
 		this.out.println("Precision on test set: " + this.decimalFormat.format(classifierMetrics.getPrecision()));
 		this.out.println("Recall on test set: " + this.decimalFormat.format(classifierMetrics.getRecall()));
 		this.out.println("F1 Score on test set: " + this.decimalFormat.format(classifierMetrics.getF1Score()));	

@@ -8,10 +8,10 @@ import javax.imageio.ImageIO;
 
 public class DataFileReader {
 	
-	public List<List<Integer>> getGrayScaleImageArrays(File folderName) {
+	public static List<List<Double>> getGrayScaleImageArrays(File folderName) {
 		
 		List<File> directoryListing = getDirectoryListing(folderName);
-		List<List<Integer>> grayScaleImageArrays = new ArrayList<List<Integer>>(directoryListing.size());
+		List<List<Double>> grayScaleImageArrays = new ArrayList<List<Double>>(directoryListing.size());
 		
 		for (File imageFile : directoryListing) {
 			grayScaleImageArrays.add(getGrayScaleImageArray(getImageFileContents(imageFile)));
@@ -21,10 +21,10 @@ public class DataFileReader {
 		
 	}
 	
-	private static List<Integer> getGrayScaleImageArray(BufferedImage imageFileContents) {
+	private static List<Double> getGrayScaleImageArray(BufferedImage imageFileContents) {
 		
 		int imageHeight = imageFileContents.getHeight(), imageWidth = imageFileContents.getWidth(), redGreenBlue = 0, red =0, green = 0, blue = 0, gray = 0;
-		List<Integer> grayScaleImageArray = new ArrayList<Integer>(imageHeight * imageWidth);
+		List<Double> grayScaleImageArray = new ArrayList<Double>(imageHeight * imageWidth);
 		
 		//Get gray scale value at each pixel location
 		for (int widthCounter = 0; widthCounter < imageWidth; ++widthCounter) {
@@ -33,10 +33,10 @@ public class DataFileReader {
 				redGreenBlue = imageFileContents.getRGB(widthCounter, heightCounter);
 				red = (redGreenBlue >> 16) & 0xFF;
 				green = (redGreenBlue >> 8) & 0xFF;
-				blue = (redGreenBlue & 0xFF);	
+				blue = (redGreenBlue & 0xFF);
 				gray = (red + green + blue) / 3;
 			
-				grayScaleImageArray.add(Integer.valueOf(gray));
+				grayScaleImageArray.add(Double.valueOf(gray));
 			}
 		}
 		

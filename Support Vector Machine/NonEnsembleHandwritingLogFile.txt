@@ -1,1 +1,0 @@
-Learning rate: 0.01, tradeoff value: 1.0, average accuracy: 0.7059999999999998

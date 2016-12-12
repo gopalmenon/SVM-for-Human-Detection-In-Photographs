@@ -136,12 +136,28 @@ public class SvmClient {
 	private void printPredictionAccuracyMetrics(List<BinaryDataLabel> predictions) {
 		
 		ClassifierMetrics classifierMetrics = new ClassifierMetrics(this.testingDataLabels, predictions);
-		this.out.println("\nNumber of pictures used in prediction: " + predictions.size());
+		this.out.println("\nExpected " + getPositiveLabelCount(this.testingDataLabels) + " images containing humans out of " + this.testingDataLabels.size() + ", and found " + getPositiveLabelCount(predictions));
 		this.out.println("Accuracy on test set: " + this.decimalFormat.format(classifierMetrics.getAccuracy()));
 		this.out.println("Precision on test set: " + this.decimalFormat.format(classifierMetrics.getPrecision()));
 		this.out.println("Recall on test set: " + this.decimalFormat.format(classifierMetrics.getRecall()));
 		this.out.println("F1 Score on test set: " + this.decimalFormat.format(classifierMetrics.getF1Score()));	
 
+	}
+	
+	/**
+	 * @param labels
+	 * @return the number of positive labels
+	 */
+	private int getPositiveLabelCount(List<BinaryDataLabel> labels) {
+		
+		int positiveLabelCount = 0;
+		for (BinaryDataLabel label : labels) {
+			if (label == BinaryDataLabel.POSITIVE_LABEL) {
+				++positiveLabelCount;
+			}
+		}
+		return positiveLabelCount;
+	
 	}
 	
 	/**

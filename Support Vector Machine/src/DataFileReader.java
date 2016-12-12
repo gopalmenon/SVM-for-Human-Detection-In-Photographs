@@ -1,3 +1,4 @@
+import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -14,15 +15,21 @@ public class DataFileReader {
 	public static final String TRAINING_DATA_LABELS = "trainingDataLabels";
 	public static final String TESTING_DATA = "testingData";
 	public static final String TESTING_DATA_LABELS = "testingDataLabels";
-	public static final String EXPECTED_IMAGE_FILE_EXTENSION = ".bmp";
+	public static final String EXPECTED_IMAGE_FILE_EXTENSION = "bmp";
+	
+	public static final double SCALED_WIDTH_FRACTION = 0.1;
+	public static final double SCALED_HEIGHT_FRACTION = 0.1;
 
 	/**
 	 * @param folderName
+	 * @param resizedFolderName
 	 * @return gray scale image arrays given a folder
 	 */
-	public static List<List<Double>> getGrayScaleImageArrays(File folderName) {
+	public static List<List<Double>> getGrayScaleImageArrays(File folderName, File resizedFolderName) {
 		
-		List<File> directoryListing = getDirectoryListing(folderName);
+		resizeImages(folderName, resizedFolderName);
+		
+		List<File> directoryListing = getDirectoryListing(resizedFolderName);
 		List<List<Double>> grayScaleImageArrays = new ArrayList<List<Double>>(directoryListing.size());
 		
 		for (File imageFile : directoryListing) {
@@ -32,6 +39,49 @@ public class DataFileReader {
 		}
 
 		return grayScaleImageArrays;
+		
+	}
+	
+	/**
+	 * Resize the images for faster processing
+	 * @param folderName
+	 * @param resizedFolderName
+	 */
+	private static void resizeImages(File folderName, File resizedFolderName) {
+		
+		List<File> directoryListing = getDirectoryListing(folderName);
+		
+		BufferedImage originalImage = null, scaledImage = null;
+		int scaledWidth = 0, scaledHeight = 0;
+		String scaledFileName = null;
+		for (File imageFile : directoryListing) {
+			
+			if (imageFile.getName().endsWith(EXPECTED_IMAGE_FILE_EXTENSION)) {
+				
+				try {
+					
+					//Get the original image
+					originalImage = ImageIO.read(imageFile);
+
+					//Scale the image
+					scaledWidth = (int) (originalImage.getWidth() * SCALED_WIDTH_FRACTION);
+					scaledHeight = (int) (originalImage.getHeight() * SCALED_HEIGHT_FRACTION);
+					scaledImage = new BufferedImage(scaledWidth, scaledHeight, originalImage.getType());
+					Graphics2D g2d = scaledImage.createGraphics();
+			        g2d.drawImage(originalImage, 0, 0, scaledWidth, scaledHeight, null);
+			        g2d.dispose();
+			        
+			        //Save scaled image
+			        scaledFileName = resizedFolderName.getPath() + "/" + imageFile.getName();
+			        ImageIO.write(scaledImage, EXPECTED_IMAGE_FILE_EXTENSION, new File(scaledFileName));
+			        
+				} catch (IOException e) {
+					e.printStackTrace();
+					System.exit(0);
+				}
+				
+			}
+		}
 		
 	}
 	

@@ -16,9 +16,12 @@ public class SvmClient {
 	
 	public static final double TRAINING_DATA_FRACTION = 0.8;
 	
-	public static final String HUMANS_PRESENT_DATA_FILE = "Humans/present";
-	public static final String HUMANS_ABSENT_DATA_FILE = "Humans/absent";
+	public static final String HUMANS_PRESENT_DATA_FOLDER = "Humans/present";
+	public static final String HUMANS_ABSENT_DATA_FOLDER = "Humans/absent";
 	
+	public static final String HUMANS_PRESENT_RESIZED_DATA_FOLDER = "Resized/present";
+	public static final String HUMANS_ABSENT_RESIZED_DATA_FOLDER = "Resized/absent";
+
 	public static final String SVM_RUN_LOG_FILE = "SvmRunLogFile.txt";
 	
 	private List<List<Double>> trainingData;
@@ -67,9 +70,9 @@ public class SvmClient {
 		System.out.println(new Timestamp(System.currentTimeMillis()) + ": Starting data retrieval.");
 		
 		//Get image data and labels
-		List<List<Double>> humansPresentData = DataFileReader.getGrayScaleImageArrays(new File(HUMANS_PRESENT_DATA_FILE));
+		List<List<Double>> humansPresentData = DataFileReader.getGrayScaleImageArrays(new File(HUMANS_PRESENT_DATA_FOLDER), new File(HUMANS_PRESENT_RESIZED_DATA_FOLDER));
 		List<BinaryDataLabel> humansPresentDataLabels = DataFileReader.getLabelsList(humansPresentData.size(), true);
-		List<List<Double>> humansAbsentData = DataFileReader.getGrayScaleImageArrays(new File(HUMANS_ABSENT_DATA_FILE));
+		List<List<Double>> humansAbsentData = DataFileReader.getGrayScaleImageArrays(new File(HUMANS_ABSENT_DATA_FOLDER), new File(HUMANS_ABSENT_RESIZED_DATA_FOLDER));
 		List<BinaryDataLabel> humansAbsentDataLabels = DataFileReader.getLabelsList(humansAbsentData.size(), true);
 		
 		//Split images and labels data into training and test sets

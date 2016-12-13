@@ -118,14 +118,20 @@ public class SvmClient {
 		
 		System.out.println(new Timestamp(System.currentTimeMillis()) + ": Starting predictions.");
 		
-		//Run predictions
+		//Run predictions on testing data
 		List<BinaryDataLabel> predictions = classifier.getPredictions(this.testingData);
 		
-		//Write the SVM logs
-		classifier.closeLogFile();
+		//Print predictions
+		printPredictionAccuracyMetrics(predictions, true);
+		
+		//Run predictions on training data
+		predictions = classifier.getPredictions(this.trainingData);
 		
 		//Print predictions
-		printPredictionAccuracyMetrics(predictions);
+		printPredictionAccuracyMetrics(predictions, false);
+
+		//Write the SVM logs
+		classifier.closeLogFile();
 		
 		System.out.println(new Timestamp(System.currentTimeMillis()) + ": Done with predictions.");
 
@@ -135,14 +141,16 @@ public class SvmClient {
 	 * Print prediction accuracy metrics
 	 * @param predictions
 	 */
-	private void printPredictionAccuracyMetrics(List<BinaryDataLabel> predictions) {
+	private void printPredictionAccuracyMetrics(List<BinaryDataLabel> predictions, boolean onTestingData) {
 		
-		ClassifierMetrics classifierMetrics = new ClassifierMetrics(this.testingDataLabels, predictions);
-		this.out.println("\nExpected " + getPositiveLabelCount(this.testingDataLabels) + " images containing humans out of " + this.testingDataLabels.size() + ", and found " + getPositiveLabelCount(predictions));
-		this.out.println("Accuracy on test set: " + this.decimalFormat.format(classifierMetrics.getAccuracy()));
-		this.out.println("Precision on test set: " + this.decimalFormat.format(classifierMetrics.getPrecision()));
-		this.out.println("Recall on test set: " + this.decimalFormat.format(classifierMetrics.getRecall()));
-		this.out.println("F1 Score on test set: " + this.decimalFormat.format(classifierMetrics.getF1Score()));	
+		String setDescription = onTestingData ? "testing" : "training";
+		
+		ClassifierMetrics classifierMetrics = new ClassifierMetrics(onTestingData ? this.testingDataLabels : this.trainingDataLabels, predictions);
+		this.out.println("\nExpected " + getPositiveLabelCount(onTestingData ? this.testingDataLabels : this.trainingDataLabels) + " images containing humans out of " + (onTestingData ? this.testingDataLabels.size() : this.trainingDataLabels.size()) + ", and found " + getPositiveLabelCount(predictions));
+		this.out.println("Accuracy on " + setDescription + " set: " + this.decimalFormat.format(classifierMetrics.getAccuracy()));
+		this.out.println("Precision on " + setDescription + " set: " + this.decimalFormat.format(classifierMetrics.getPrecision()));
+		this.out.println("Recall on " + setDescription + " set: " + this.decimalFormat.format(classifierMetrics.getRecall()));
+		this.out.println("F1 Score on " + setDescription + " set: " + this.decimalFormat.format(classifierMetrics.getF1Score()));	
 
 	}
 	

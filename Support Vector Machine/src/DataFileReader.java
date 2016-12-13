@@ -114,7 +114,7 @@ public class DataFileReader {
 		assert trainingDataFraction < 1.0 && data.size() == labels.size();
 		
 		//Compute the number of records in each split
-		int numberOfTrainingRecords = (int) trainingDataFraction * data.size(), numberOfTestingRecords = data.size() - numberOfTrainingRecords, recordCounter = 0;
+		int numberOfTrainingRecords = (int) (trainingDataFraction * data.size()), numberOfTestingRecords = data.size() - numberOfTrainingRecords, recordCounter = 0;
 		
 		Map<String, Object> partitionedDataAndLabels = new HashMap<String, Object>(4);
 		List<List<Double>> trainingData = new ArrayList<List<Double>>(numberOfTrainingRecords);

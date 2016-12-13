@@ -114,7 +114,7 @@ public class SvmClient {
 		System.out.println(new Timestamp(System.currentTimeMillis()) + ": Starting training.");
 		
 		//Train the classifier
-		classifier.fit(this.testingData, this.testingDataLabels);
+		classifier.fit(this.trainingData, this.trainingDataLabels);
 		
 		System.out.println(new Timestamp(System.currentTimeMillis()) + ": Starting predictions.");
 		

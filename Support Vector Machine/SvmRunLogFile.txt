@@ -1,72 +1,12 @@
 
-Handwriting using SVM
-Accuracy on test set: 0.7184
-Precision on test set: 0.6476
-Recall on test set: 0.9967
-F1 Score on test set: 0.7851
+Expected 92 images containing humans out of 146, and found 91
+Accuracy on testing set: 0.6370
+Precision on testing set: 0.7143
+Recall on testing set: 0.7065
+F1 Score on testing set: 0.7104
 
-Handwriting using SVM
-Accuracy on training set: 0.7240
-Precision on training set: 0.6650
-Recall on training set: 1.0000
-F1 Score on training set: 0.7988
-
-Madelon using SVM
-Accuracy on test set: 0.5867
-Precision on test set: 0.5802
-Recall on test set: 0.6267
-F1 Score on test set: 0.6026
-
-Madelon using SVM
-Accuracy on training set: 0.6325
-Precision on training set: 0.6233
-Recall on training set: 0.6700
-F1 Score on training set: 0.6458
-
-Handwriting using forest of 5 trees
-Accuracy on test set: 0.6897
-Precision on test set: 0.7460
-Recall on test set: 0.6046
-F1 Score on test set: 0.6679
-
-Handwriting using forest of 5 trees
-Accuracy on training set: 0.7800
-Precision on training set: 0.8475
-Recall on training set: 0.7299
-F1 Score on training set: 0.7843
-
-Madelon using forest of 10 trees
-Accuracy on test set: 0.5533
-Precision on test set: 0.5408
-Recall on test set: 0.7067
-F1 Score on test set: 0.6127
-
-Madelon using forest of 10 trees
-Accuracy on training set: 0.6285
-Precision on training set: 0.6011
-Recall on training set: 0.7640
-F1 Score on training set: 0.6728
-
-Madelon using forest of 30 trees
-Accuracy on test set: 0.5650
-Precision on test set: 0.5644
-Recall on test set: 0.5700
-F1 Score on test set: 0.5672
-
-Madelon using forest of 30 trees
-Accuracy on training set: 0.7450
-Precision on training set: 0.7431
-Recall on training set: 0.7490
-F1 Score on training set: 0.7460
-
-Madelon using forest of 100 trees
-Accuracy on test set: 0.5467
-Precision on test set: 0.5507
-Recall on test set: 0.5067
-F1 Score on test set: 0.5278
-
-Madelon using forest of 100 trees
-Accuracy on training set: 0.8350
-Precision on training set: 0.8618
-Recall on training set: 0.7980
-F1 Score on training set: 0.8287
+Expected 368 images containing humans out of 584, and found 438
+Accuracy on training set: 0.7432
+Precision on training set: 0.7489
+Recall on training set: 0.8913
+F1 Score on training set: 0.8139

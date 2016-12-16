@@ -326,7 +326,7 @@
 % not capitalized unless they are the first or last word of the title.
 % Linebreaks \\ can be used within to get better formatting as desired.
 % Do not put math or special symbols in the title.
-\title{Detection of Pedestrians in Images using SVM\\Project Intermediate Status Report}
+\title{Detection of Pedestrians in Images using SVM\\Project Report}
 
 
 % author names and affiliations
@@ -392,7 +392,7 @@ Fall 2016, University of Utah}
 
 \section{Project Scope}
 
-The scope will be to construct a classifier using a Support Vector Machine (SVM) that can classify a street image as one containing or not containing a pedestrian. The main reason why it is interesting to me is that it is one of those problems that can be easily explained to a human, while being extremely difficult to program using traditional methods. 
+The scope was to construct a classifier using a Support Vector Machine (SVM) that can classify a street image as one containing or not containing a pedestrian. The main reason why it is interesting to me is that it is one of those problems that can be easily explained to a human, while being extremely difficult to program using traditional methods. 
 
 \begin{figure}[!t]
 \centering
@@ -401,9 +401,11 @@ The scope will be to construct a classifier using a Support Vector Machine (SVM)
 \label{which}
 \end{figure}
 
-Although there may be many separating boundaries as shown in figure \ref{which}, the linear separation is achieved by selecting a boundary that maximizes the separation between the classes. The vectors that lie on the separating band are called support vectors. These are shown as the solid squares and circle in figure \ref{max}.
+An SVM is a linear classifier that finds the separating boundary between instances of two classes or labels. Although there may be many separating boundaries as shown in figure \ref{which}, the linear separation is achieved by selecting a boundary that maximizes the separation between the classes. The vectors that lie on the separating band are called support vectors. These are shown as the solid squares and circle in figure \ref{max}. By finding a such a band that maximizes the separation between classes, the classifier has better generalization for examples that have not been seen yet.
+\subsection{Initial Assumptions}
+When I started with the project, I went forward with the assumption that through use of a suitable kernel function, images can be linearly separated into ones that contain and do not contain a human. My understanding was that even if the images were not linearly separable in the input space, they would be linearly separable in some higher dimension space through the use of Kernels. Another reason for using an SVM with a Kernel was the belief that since the SVM loss function with respect to the weight vector was convex, it would be possible to find the global minima as opposed to the case for a neural network where I would only be able to find a local minima.
 
-When I started with the project, I went forward with the assumption that through use of a suitable kernel function, images can be linearly separated into ones that contain and do not contain a human. Since then, I learnt during office hours after class that this may not be possible However I am not sure why it is not possible. One suggestion I got during office hours was to use the input to the final layer of a Visual Geometry Group (VGG) Very Deep Convolutional Net (VGG NET) classifier \cite{VGG} as features for an SVM to do linear separation. 
+Since then, I learnt during office hours after class that this may not be possible However I am not sure why it is not possible. One suggestion I got during office hours was to use the input to the final layer of a Visual Geometry Group (VGG) Very Deep Convolutional Net (VGG NET) classifier \cite{VGG} as features for an SVM to do linear separation. 
 
 \begin{figure}[!t]
 \centering

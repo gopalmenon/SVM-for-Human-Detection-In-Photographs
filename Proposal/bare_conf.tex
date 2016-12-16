@@ -405,7 +405,7 @@ An SVM is a linear classifier that finds the separating boundary between instanc
 \subsection{Initial Assumptions}
 When I started with the project, I went forward with the assumption that through use of a suitable kernel function, images can be linearly separated into ones that contain and do not contain a human. My understanding was that even if the images were not linearly separable in the input space, they would be linearly separable in some higher dimension space through the use of Kernels. Another reason for using an SVM with a Kernel was the belief that since the SVM loss function with respect to the weight vector was convex, it would be possible to find the global minima as opposed to the case for a neural network where I would only be able to find a local minima.
 
-Since then, I learnt during office hours after class that my understanding about the perceived superiority of SVMs when compared to a Neural Network was not correct any more. Neural Networks have surpassed SVMs in image recognition. Very Deep Convolutional Networks \cite{VGG} are currently the state of the art in image recognition. The suggestion I got during office hours was to use the input to the final layer of a Visual Geometry Group (VGG) Very Deep Convolutional Net (VGG NET) classifier as features for an SVM to do linear separation. 
+Since then, I learnt during office hours after class that my understanding about the perceived superiority of SVMs when compared to a Neural Network was not correct. Neural Networks have surpassed SVMs in image recognition. Very Deep Convolutional Networks \cite{VGG} are currently the state of the art in image recognition. The suggestion I got during office hours was to use the input to the final layer of a Visual Geometry Group (VGG) Very Deep Convolutional Net (VGG NET) classifier as features for an SVM to do linear separation. 
 
 \begin{figure}[!t]
 \centering
@@ -427,7 +427,7 @@ While looking for project ideas, I had gone through the syllabus and saw that SV
 I had read up on the use of Kernels and understood how the Kernel trick could be used to achieve a dot product in a higher dimension space without actually converting the inputs to the function to the higher dimension. I also understood how hard-margin and soft-margin SVMs worked. I understood the mathematical part of the dual form of an SVM where the learnt weight is the sum of products of the $m$ training inputs, labels and an $\alpha$ \cite{AMLBook}.
 
 $$
-\textbf{x} = \sum_{i=1}^m \alpha_i y_i \textbf{x}_i
+\textbf{w} = \sum_{i=1}^m \alpha_i y_i \textbf{x}_i
 $$
 
 Since the prediction is done using $sgn(\textbf{w}^T\textbf{x})$, it could be represented by
@@ -481,7 +481,7 @@ Since I started the project before SVMs were taught in class, I was still able t
 
 \section{Concepts Learnt}
 
-I got a good understanding of SVMs and linear classifiers especially the concept of maximizing the margin for better generalization. I understood the importance of cross validation for selecting hyper-parameters, which was especially useful in building a linear classifier where the inputs were not necessarily full linearly separable.
+I got a good understanding of SVMs and linear classifiers especially the concept of maximizing the margin for better generalization. I understood the importance of cross validation for selecting hyper-parameters, which was especially useful in building a linear classifier where the inputs were not necessarily fully linearly separable.
 
 I downloaded and used a classifier based on a Deep Convolution Network \cite{Deep4J} and was able to get it to classify the images that were used by the SVM classifier. The accuracy of this classifier far exceeded that for the SVM linear classifier, but this was expected. I however did not get a complete understanding of these classifiers although I think I do have a good understanding of Neural Net classifiers. I am still not sure how I would go about troubleshooting a Neural Network that does not work (due to a bug in back propagation implementation for example). 
 
@@ -491,7 +491,7 @@ I downloaded and used a classifier based on a Deep Convolution Network \cite{Dee
 
 \item I converted the color images to grayscale.
 \item Images were scaled to 20\%, 25\% and 30\% of the original size so as to make computational load smaller. Also, because the classifier was failing with memory allocation error when run on the original images.
-\item All the images were of the same size and did not need to pad the feature vectors with zeroes in order to make them of the same size.
+\item All the images were of the same size and I did not need to pad the feature vectors with zeroes in order to make them of the same size.
 \item I used $20$ epochs, $5$-fold cross validation, learning rates from $10^1, 10^0, 10^{-1}, 10^{-2},\ldots, 10^{-10}$ and tradeoff values of $2^1, 2^0, 2^{-1}, 2^{-2},\ldots, 2^{-10}$ for cross validation.
 \end{enumerate}
 
@@ -551,7 +551,7 @@ Although my plan was to use the inputs to the last layer of the Convolution Net 
 
 \section{If I had more time}
 
-If I had more time or if I knew what I know now at the beginning of the project selection, I would have chosen to use a regular Neural Network or one based on a Convolutional Network as these seem to work best with non-linear classification. I would also have liked to use ensemble classifiers as the idea seems very elegant to me.
+If I had more time or if I knew what I know now at the beginning of the project selection, I would have chosen to use a regular Neural Network or one based on a Convolutional Network as these seem to work best with non-linear classification. I would also have liked to use ensemble classifiers as the idea seems very elegant to me. I would also have tried techniques for image clustering through use of face recognition. I have seen this on iPhones, where the application automatically creates groups of images that contain the same person.
 
 \begin{thebibliography}{1}
 

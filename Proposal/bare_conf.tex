@@ -405,7 +405,7 @@ An SVM is a linear classifier that finds the separating boundary between instanc
 \subsection{Initial Assumptions}
 When I started with the project, I went forward with the assumption that through use of a suitable kernel function, images can be linearly separated into ones that contain and do not contain a human. My understanding was that even if the images were not linearly separable in the input space, they would be linearly separable in some higher dimension space through the use of Kernels. Another reason for using an SVM with a Kernel was the belief that since the SVM loss function with respect to the weight vector was convex, it would be possible to find the global minima as opposed to the case for a neural network where I would only be able to find a local minima.
 
-Since then, I learnt during office hours after class that this may not be possible However I am not sure why it is not possible. One suggestion I got during office hours was to use the input to the final layer of a Visual Geometry Group (VGG) Very Deep Convolutional Net (VGG NET) classifier \cite{VGG} as features for an SVM to do linear separation. 
+Since then, I learnt during office hours after class that my understanding about the perceived superiority of SVMs when compared to a Neural Network was not correct any more. Neural Networks have surpassed SVMs in image recognition. Very Deep Convolutional Networks \cite{VGG} are currently the state of the art in image recognition. The suggestion I got during office hours was to use the input to the final layer of a Visual Geometry Group (VGG) Very Deep Convolutional Net (VGG NET) classifier as features for an SVM to do linear separation. 
 
 \begin{figure}[!t]
 \centering
@@ -414,9 +414,38 @@ Since then, I learnt during office hours after class that this may not be possib
 \label{max}
 \end{figure}
 
-\section{Progress}
+\section{Ideas Explored}
+\subsection{SVMs using Non-Linear Kernels}
+While looking for project ideas, I had gone through the syllabus and saw that SVMs were going to be covered and decided to do a project using an SVM for pedestrian image classification. What interested me most was the idea of using a linear classifier in a higher dimensional space in order to achieve a non-linear separating boundary in the input space. This is illustrated in figure \ref{NonLinearClassification} where the curved line separating the classes is the decision boundary and the examples marked with the squares are the support vectors that lie on the margin.
+\begin{figure}[!t]
+\centering
+\includegraphics[width=2.0in]{./figures/NonLinearClassification.png}
+\caption{Non-Linear linear decision boundary in an SVM achieved through use of a Kernel \cite{AMLBook}}
+\label{NonLinearClassification}
+\end{figure}
 
-\subsection{Literature and Resources used}
+I had read up on the use of Kernels and understood how the Kernel trick could be used to achieve a dot product in a higher dimension space without actually converting the inputs to the function to the higher dimension. I also understood how hard-margin and soft-margin SVMs worked. I understood the mathematical part of the dual form of an SVM where the learnt weight is the sum of products of the $m$ training inputs, labels and an $\alpha$ \cite{AMLBook}.
+
+$$
+\textbf{x} = \sum_{i=1}^m \alpha_i y_i \textbf{x}_i
+$$
+
+Since the prediction is done using $sgn(\textbf{w}^T\textbf{x})$, it could be represented by
+
+\begin{equation*}
+\begin{aligned}
+sgn(\textbf{w}^T\textbf{x}) &= \sum_{i=1}^m \alpha_i y_i \textbf{x}_i^T\textbf{x}\\
+&= \sum_{i=1}^m \alpha_i y_i K(\textbf{x}_i,\textbf{x})
+\end{aligned}
+\end{equation*}
+
+where $K$ is a kernel function. I could not map this theory into an algorithm for using a Kernel with an SVM. Also I got feedback on the interim project report that a non-linear kernel SVM was too complex to be done as a class project. This along with the realization that a Neural Net would outperform an SVM with a non-linear kernel, made me drop the idea of using a Kernel.
+
+\subsection{Feature Extraction and Input size reduction}
+
+Since I was going to transform the images to be classified into long pixel intensity vectors, I wanted to do some sort of feature extraction that would make the training task faster and also would allow the feature set to fit into main memory during training. I investigated OpenCV and instead decided to simply scale the images so that the feature vectors would be reduced in size. In addition to scaling the images, I also converted them to grayscale so that I would have one integer per pixel as my features. I used standard Java library functions for the scaling and grayscale conversion.
+
+\subsection{Literature used}
 
 \begin{enumerate}
 
@@ -428,52 +457,85 @@ Since then, I learnt during office hours after class that this may not be possib
 
 \end{enumerate}
 
-\subsection{Current Status}
+\subsection{Resources used}
+
+The INRIA labelled dataset for humans present and absent was used for training and testing. All the images were of the same size and due to this, no padding of training data vectors with zeroes needed to be done as all the pixel array vectors had the same length.
+
+\section{Ideas used from class}
+
+Since I started the project before SVMs were taught in class, I was still able to use class resources by watching recordings of the class from last year. My SVM was not predicting simple cases correctly and I used feedback from discussions during office hours on how to troubleshoot by using simple inputs with predictable results, setting the seed for the random number generator (used for generating simple test data) so that inputs could be recreated for easier debugging and the very useful suggestion of monitoring the objective so that it reduces. I was able to find and fix a few errors and my SVM started to work. I had coded some kernels (linear, polynomial and Gaussian) but ended up not using them.
+
+\section{Concepts Learnt}
+
+I got a good understanding of SVMs and linear classifiers especially the concept of maximizing the margin for better generalization. I understood the importance of cross validation for selecting hyper-parameters, which was especially useful in building a linear classifier where the inputs were not necessarily full linearly separable.
+
+I downloaded and used a classifier based on a Deep Convolution Network \cite{Deep4J} and was able to get it to classify the images that were used by the SVM classifier. The accuracy of this classifier far exceeded that for the SVM linear classifier, but this was expected. I however did not get a complete understanding of these classifiers although I think I do have a good understanding of Neural Net classifiers. I am still not sure how I would go about troubleshooting a Neural Network that does not work (due to a bug in back propagation implementation for example). 
+
+\section{Design choices}
 
 \begin{enumerate}
 
-\item I have coded an SVM in Java that finds the separator with maximum margin when it is given a training set where each training set entry is an array of floating point numbers. There is no maximum or minimum limitation for the dimensionality of the training set, but all the training and test set entries must have the same dimensionality. The SVM needs to be provided an object that is an instance of a class that implements a method that returns the dot product of its inputs in a different space. I have successfully tested the SVM with a kernel that just returns the dot product of its inputs by giving it one-dimensional and two-dimensional inputs.
-
-\item I have coded the following kernels in addition to the trivial implementation mentioned above. These are based on the kernels described in the book \textit{Learning from Data: A Short Course} \cite{AMLBook}. 
-
-\begin{enumerate}
-
-\item Polynomial Kernel
-
-\item Degree Q Polynomial Kernel
-
-\item Gaussian Radial Bias Function Kernel
-
+\item I converted the color images to grayscale.
+\item Images were scaled to 20\%, 25\% and 30\% of the original size so as to make computational load smaller. Also, because the classifier was failing with memory allocation error when run on the original images.
+\item All the images were of the same size and did not need to pad the feature vectors with zeroes in order to make them of the same size.
+\item I used $20$ epochs, $5$-fold cross validation, learning rates from $10^1, 10^0, 10^{-1}, 10^{-2},\ldots, 10^{-10}$ and tradeoff values of $2^1, 2^0, 2^{-1}, 2^{-2},\ldots, 2^{-10}$ for cross validation.
 \end{enumerate}
 
-\item I have obtained test data consisting of images containing humans and those not containing humans. The images were downloaded from the \textit{INRIA Person Dataset} \cite{INRIA}.
+\section{Results}
 
-\end{enumerate}
+\begin {table}[H]
+\centering
+\caption {Testing Data Metrics for SVM Classifier} \label{tab:svmtabtest} 
+\begin{tabular}{|c|c|c|c|c|c|}
+      \hline
+      Scaling & Accuracy & Precision & Recall & F$1$ Score\\
+      \hline
+      
+      20\%                &  0.6370             &  0.7143     & 0.7065 &  0.7104                          \\
+      25\%                & 0.6027              &  0.7073     & 0.6304 &   0.6667                       \\
+      30\%                &   0.6164            &   0.6800      & 0.7391 &  0.7083                        \\
+      \hline
+    \end{tabular}
+\end{table}
 
-\section{Strategy}
+Table \ref{tab:svmtabtest} has the metrics for the SVM classifier on the testing data. The accuracy measures are not very high although I was surprised that I was able to get an F$1$ Score of around $70\%$. I was expecting numbers that were lower than chance as I did not expect the image data to be linearly separable. I expected the numbers to improve when the scaling was reduced (scaling percentage was increased), however the accuracy got worse when scaling was changed from 20\% to 25\% and then increased from 25\% to 30\%. I am not sure how to explain this. With scaling of 20\% the total run time on my laptop was slightly more than $1$ hour and with 30\%, it increased to around $4$ hours. Due to the higher run time at 30\%, I did not try going beyond 30\%. Initially I had tried to run the classifier without any scaling and this resulted in a memory allocation error.
 
-\subsection{Further Work}
+\begin {table}[H]
+\centering
+\caption {Training Data Metrics for SVM Classifier} \label{tab:svmtabtrain} 
+\begin{tabular}{|c|c|c|c|c|c|}
+      \hline
+      Scaling & Accuracy & Precision & Recall & F$1$ Score\\
+      \hline
+      
+      20\%                &  0.7432             &  0.7489     & 0.8913 &  0.8139                          \\
+      25\%                & 0.7568              &  0.7868     & 0.8424 &   0.8136                       \\
+      30\%                &   0.7603            &   0.7545      & 0.9185 &  0.8284                        \\
+      \hline
+    \end{tabular}
+\end{table}
 
-\begin{enumerate}
+Table \ref{tab:svmtabtrain} has the metrics for the SVM classifier on the training data and as expected, the accuracy was higher when compared to the test data.
 
-\item Understand the working of SVMs with Kernels
-\item Understand the limitations of SVMs particularly why they cannot classify images
-\item Understand VGG Net classifier
-\item Obtain an implementation of VGG Net classifier
-\item Perform any image pre-processing that is required by a VGG Net classifier.
-\item Build and test a pedestrian image classifier using the input to the last layer of a VGG Net classifier as input to an SVM. 
+\begin {table}[H]
+\centering
+\caption {Metrics for Convolution Net Classifier} \label{tab:cnnmetrics} 
+\begin{tabular}{|c|c|c|c|c|c|}
+      \hline
+      Dataset & Accuracy & Precision & Recall & F$1$ Score\\
+      \hline
+      
+       Testing                & 1.0              &  1.0     & 1.0 &   1.0                       \\
+       Training               &  0.9444             &  0.95     & 0.9444 &  0.9472                          \\
+      \hline
+    \end{tabular}
+\end{table}
 
-\end{enumerate}
+Table \ref{tab:cnnmetrics} has the metrics for the Convolution Net Classifier and the accuracy of this classifier far exceeded the one using an SVM. This classifier was run using source code that was downloaded \cite{Deep4J} and modified so as to use the same dataset as the SVM classifier. 
 
-\section{Classifier Evaluation}
+Although my plan was to use the inputs to the last layer of the Convolution Net Classifier as the inputs to the SVM classifier, I was not able to do so as internals were not accessible.
 
-\begin{enumerate}
-
-\item The VGG Net classifier can be used as a baseline for evaluating the SVM classifier. Since I plan to use the input to the last layer of the VGG Net classifier as the input to the SVM, I expect both the baseline and the SVM classifier to have similar results. The reason I say this is because the last layer of a VGG Net classifier will function as a linear threshold detector, or a perceptron, which will be possible to recreate using an SVM.
-
-\item In addition to comparing the accuracy of the implemented SVM classifier with that of a VGG Net classifier, I also plan to do manual checks in order to make sure that the results are accurate.
-
-\end{enumerate}
+\section{If I had more time}
 
 \begin{thebibliography}{1}
 
@@ -491,6 +553,8 @@ Cristianini, Nello, and John Shawe-Taylor. \textit{An Introduction to Support Ve
 \bibitem{VGG}
 \enquote{Visual Geometry Group Home Page.} \textit{Visual Geometry Group Home Page}. N.p., n.d. Web. 08 Nov. 2016.
 
+\bibitem{Deep4J}
+Gibson, Chris Nicholson Adam. \enquote{Deep Learning for Java.} \textit{Deeplearning4j: Open-source, Distributed Deep Learning for the JVM.} N.p., n.d. Web. 15 Dec. 2016.
 \end{thebibliography}
 
 \end{document}

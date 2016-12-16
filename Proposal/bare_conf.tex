@@ -459,7 +459,21 @@ Since I was going to transform the images to be classified into long pixel inten
 
 \subsection{Resources used}
 
-The INRIA labelled dataset for humans present and absent was used for training and testing. All the images were of the same size and due to this, no padding of training data vectors with zeroes needed to be done as all the pixel array vectors had the same length.
+The INRIA labelled dataset \cite{INRIA} for humans present and absent was used for training and testing. All the images were of the same size and due to this, no padding of training data vectors with zeroes needed to be done as all the pixel array vectors had the same length. Figures \ref{noperson} and \ref{person} are samples of images from the INRIA dataset that were used in the project.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=2.0in]{./figures/noperson.png}
+\caption{Sample of image without person}
+\label{noperson}
+\end{figure}
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=2.0in]{./figures/person.png}
+\caption{Sample of image with person}
+\label{person}
+\end{figure}
 
 \section{Ideas used from class}
 
@@ -536,6 +550,8 @@ Table \ref{tab:cnnmetrics} has the metrics for the Convolution Net Classifier an
 Although my plan was to use the inputs to the last layer of the Convolution Net Classifier as the inputs to the SVM classifier, I was not able to do so as internals were not accessible.
 
 \section{If I had more time}
+
+If I had more time or if I knew what I know now at the beginning of the project selection, I would have chosen to use a regular Neural Network or one based on a Convolutional Network as these seem to work best with non-linear classification. I would also have liked to use ensemble classifiers as the idea seems very elegant to me.
 
 \begin{thebibliography}{1}
 

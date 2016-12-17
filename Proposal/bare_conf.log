@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.5.22)  15 DEC 2016 17:40
+This is pdfTeX, Version 3.14159265-2.6-1.40.17 (TeX Live 2016) (preloaded format=pdflatex 2016.5.22)  15 DEC 2016 21:44
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -406,17 +406,40 @@ File: ./figures/WhichBoundary.png Graphic file (type png)
 <use ./figures/WhichBoundary.png>
 Package pdftex.def Info: ./figures/WhichBoundary.png used on input line 399.
 (pdftex.def)             Requested size: 144.54pt x 143.17033pt.
+Missing character: There is no   in font ptmr7t!
 
 <./figures/MaxMargin.png, id=3, 329.23pt x 322.20375pt>
 File: ./figures/MaxMargin.png Graphic file (type png)
 
 <use ./figures/MaxMargin.png>
-Package pdftex.def Info: ./figures/MaxMargin.png used on input line 410.
+Package pdftex.def Info: ./figures/MaxMargin.png used on input line 412.
 (pdftex.def)             Requested size: 144.54pt x 141.45543pt.
+
+<./figures/NonLinearClassification.png, id=4, 139.52126pt x 140.525pt>
+File: ./figures/NonLinearClassification.png Graphic file (type png)
+
+<use ./figures/NonLinearClassification.png>
+Package pdftex.def Info: ./figures/NonLinearClassification.png used on input li
+ne 422.
+(pdftex.def)             Requested size: 144.54pt x 145.58504pt.
  [1{/usr/local/texlive/2016/texmf-var/fonts/map/pdftex/updmap/pdftex.map}
 
 
- <./figures/WhichBoundary.png> <./figures/MaxMargin.png>]
+ <./figures/WhichBoundary.png> <./figures/MaxMargin.png>] <./figures/noperson.p
+ng, id=14, 642.4pt x 481.8pt>
+File: ./figures/noperson.png Graphic file (type png)
+
+<use ./figures/noperson.png>
+Package pdftex.def Info: ./figures/noperson.png used on input line 466.
+(pdftex.def)             Requested size: 144.54pt x 108.40031pt.
+ <./figures/person.png, id=15, 481.8pt x 642.4pt>
+File: ./figures/person.png Graphic file (type png)
+
+<use ./figures/person.png>
+Package pdftex.def Info: ./figures/person.png used on input line 473.
+(pdftex.def)             Requested size: 144.54pt x 192.71169pt.
+ [2 <./figures/NonLinearClassification.png> <./figures/noperson.png> <./figures
+/person.png>]
 
 ** Conference Paper **
 Before submitting the final camera ready copy, remember to:
@@ -428,24 +451,30 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
-[2
-
-] (./bare_conf.aux) ) 
+[3] (./bare_conf.aux) ) 
 Here is how much of TeX's memory you used:
- 5030 strings out of 493014
- 77506 string characters out of 6133351
- 166055 words of memory out of 5000000
- 8505 multiletter control sequences out of 15000+600000
- 32394 words of font info for 63 fonts, out of 8000000 for 9000
+ 5073 strings out of 493014
+ 78226 string characters out of 6133351
+ 170109 words of memory out of 5000000
+ 8536 multiletter control sequences out of 15000+600000
+ 37498 words of font info for 74 fonts, out of 8000000 for 9000
  1144 hyphenation exceptions out of 8191
- 51i,7n,27p,819b,357s stack positions out of 5000i,500n,10000p,200000b,80000s
-{/usr/local/texlive/2016/texmf-dist/fonts/enc/dvips/base/8
-r.enc}</usr/local/texlive/2016/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></us
-r/local/texlive/2016/texmf-dist/fonts/type1/urw/times/utmri8a.pfb>
-Output written on bare_conf.pdf (2 pages, 63133 bytes).
+ 51i,11n,27p,913b,357s stack positions out of 5000i,500n,10000p,200000b,80000s
+{/usr/local/texlive/2016/texmf-dist/fonts/enc/dvips/base
+/8r.enc}</usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmex
+10.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi1
+0.pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi7.
+pfb></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmr10.pf
+b></usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmr7.pfb><
+/usr/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmr8.pfb></us
+r/local/texlive/2016/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/
+local/texlive/2016/texmf-dist/fonts/type1/urw/times/utmb8a.pfb></usr/local/texl
+ive/2016/texmf-dist/fonts/type1/urw/times/utmr8a.pfb></usr/local/texlive/2016/t
+exmf-dist/fonts/type1/urw/times/utmri8a.pfb>
+Output written on bare_conf.pdf (3 pages, 1530455 bytes).
 PDF statistics:
- 25 PDF objects out of 1000 (max. 8388607)
- 14 compressed objects within 1 object stream
+ 64 PDF objects out of 1000 (max. 8388607)
+ 40 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 11 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 26 words of extra memory for PDF output out of 10000 (max. 10000000)
 
